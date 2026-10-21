@@ -1,0 +1,292 @@
+<!-- Fragmen halaman Materi. Disisipkan oleh app.js ke menu Materi. Edit teks bacaan Materi 2 di sini. -->
+<div class="mp" id="materi-profesi">
+
+  <!-- Pengalih materi: tombol 3–10 aktif setelah materinya ditambahkan -->
+  <nav class="mp-switch" aria-label="Pilih materi">
+    <div class="mp-wrap mp-switch__in">
+      <span class="mp-switch__lbl">Materi</span>
+      <button type="button" class="mp-sw is-on" data-m="1"><b>1</b><span>Profesi dan Dunia Kerja TJKT</span></button>
+      <button type="button" class="mp-sw" data-m="2"><b>2</b><span>K3LH dan Budaya Kerja</span></button>
+      <button type="button" class="mp-sw" data-m="3" disabled title="Segera hadir"><b>3</b></button>
+      <button type="button" class="mp-sw" data-m="4" disabled title="Segera hadir"><b>4</b></button>
+      <button type="button" class="mp-sw" data-m="5" disabled title="Segera hadir"><b>5</b></button>
+      <button type="button" class="mp-sw" data-m="6" disabled title="Segera hadir"><b>6</b></button>
+      <button type="button" class="mp-sw" data-m="7" disabled title="Segera hadir"><b>7</b></button>
+      <button type="button" class="mp-sw" data-m="8" disabled title="Segera hadir"><b>8</b></button>
+      <button type="button" class="mp-sw" data-m="9" disabled title="Segera hadir"><b>9</b></button>
+      <button type="button" class="mp-sw" data-m="10" disabled title="Segera hadir"><b>10</b></button>
+    </div>
+  </nav>
+
+  <section class="mp-materi" id="materi-1">
+
+  <div class="mp-hero">
+    <div class="mp-wrap">
+      <div class="mp-crumb"><i></i>Materi 1 · Sumber Bacaan</div>
+      <h1 class="mp-title">Profesi dan Dunia Kerja <em>TJKT</em></h1>
+      <p class="mp-lede">Lulusan Teknik Jaringan Komputer dan Telekomunikasi tidak hanya bekerja sebagai “tukang setting router”. Ada 12 peran berbeda, mulai dari yang merancang, membangun, menjaga, mengamankan, sampai melayani pelanggan dan memimpin proyek. Berbagai peran, satu tujuan: menghubungkan dunia.</p>
+      <div class="mp-team">
+        <div class="mp-avatars" data-mp-avatars></div>
+        <p><b>12 profesi</b> dalam 5 tahap kerja. Klik wajahnya untuk loncat ke profesinya.</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="mp-wrap mp-intro">
+    <div>
+      <h2 class="mp-h2">Satu proyek jaringan, banyak peran</h2>
+      <p>Bayangkan sebuah gedung sekolah baru yang harus terhubung ke internet. Seseorang menghitung kebutuhan dan menggambar jalurnya, yang lain menarik kabel fiber, memasang dan mengonfigurasi perangkat, lalu ada yang memantau dan menjaga agar jaringan tetap menyala, mengawasi ancaman keamanan, serta melayani keluhan pengguna. Semuanya dikoordinasikan sampai proyek diserahterimakan.</p>
+      <p>Memahami peran-peran ini membantumu menemukan jalur karier yang cocok, sekaligus mengerti bahwa kompetensi TJKT yang kamu pelajari di kelas dipakai langsung di dunia kerja.</p>
+    </div>
+    <div>
+      <h2 class="mp-h2">Cara membaca kartu profesi</h2>
+      <ul class="mp-legend">
+        <li><span class="mp-ic mp-ic--tugas"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.1L3.5 17.2a1.8 1.8 0 0 0 2.5 2.5l5.8-5.8a4 4 0 0 0 5.1-5.4l-2.4 2.4-2.2-.6-.6-2.2 2.4-2.4z"/></svg></span><div><b>Tugas Utama</b><span>Apa yang dikerjakan sehari-hari.</span></div></li>
+        <li><span class="mp-ic mp-ic--alat"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm8.2 4.5-.1-2 1.7-1.3-1.8-3.1-2 .8a7.6 7.6 0 0 0-1.7-1l-.3-2.1H9.9l-.3 2.1c-.6.2-1.2.6-1.7 1l-2-.8-1.8 3.1L5.8 11l-.1 2 .1 0-1.7 1.3 1.8 3.1 2-.8c.5.4 1.1.8 1.7 1l.3 2.1h4.2l.3-2.1c.6-.2 1.2-.6 1.7-1l2 .8 1.8-3.1-1.7-1.3z" fill-rule="evenodd"/></svg></span><div><b>Alat Kerja</b><span>Perangkat dan software yang digunakan.</span></div></li>
+        <li><span class="mp-ic mp-ic--hasil"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm-1.2 13.2L6.6 12l1.4-1.4 2.8 2.8 5.2-5.2 1.4 1.4-6.6 6.6z"/></svg></span><div><b>Hasil Kerja</b><span>Keluaran yang bisa diperiksa atau dirasakan.</span></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="mp-wrap mp-explore" aria-labelledby="mp-h-prof">
+    <h2 class="mp-h2" id="mp-h-prof">12 profesi menurut tahap kerjanya</h2>
+    <div class="mp-steps" data-mp-steps role="group" aria-label="Filter tahap kerja"></div>
+    <p class="mp-stepinfo" data-mp-info aria-live="polite"></p>
+  </section>
+
+  <div class="mp-wrap"><div class="mp-grid" data-mp-grid></div></div>
+
+  <section class="mp-sum">
+    <div class="mp-wrap">
+      <h2 class="mp-h2">Ringkasan untuk belajar</h2>
+      <p>Tabel ini merangkum isi semua kartu. Gunakan untuk mengulang sebelum mengerjakan latihan soal.</p>
+      <div class="mp-tablewrap">
+        <table class="mp-table">
+          <thead><tr><th>Profesi</th><th>Tahap</th><th>Tugas Utama</th><th>Alat Kerja</th><th>Hasil Kerja</th></tr></thead>
+          <tbody data-mp-table></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="mp-wrap mp-key">
+    <h2 class="mp-h2">Yang perlu diingat</h2>
+    <ol class="mp-keys">
+      <li><b>Merancang sebelum membangun.</b> Network Planner dan RF Engineer bekerja di tahap perencanaan; hasilnya berupa rancangan dan dokumentasi.</li>
+      <li><b>Membangun itu kerja tim.</b> Network Engineer, Teknisi Fiber Optik, dan Data Center Technician mewujudkan rancangan menjadi jaringan yang berfungsi.</li>
+      <li><b>Jaringan perlu dijaga setiap hari.</b> Network Administrator, NOC Engineer, dan Cloud Engineer memastikan layanan stabil dan terkelola.</li>
+      <li><b>Keamanan dan layanan sama pentingnya.</b> Cybersecurity Analyst, Customer Service, Technopreneur, dan Project Manager melengkapi dunia kerja TJKT dari sisi keamanan, pelanggan, usaha, dan proyek.</li>
+    </ol>
+  </section>
+
+  <nav class="mp-wrap mp-nav" aria-label="Navigasi materi">
+    <!-- Ganti href sesuai alamat halaman di web induk -->
+    <a class="mp-btn" href="#">← Daftar Materi</a>
+    <a class="mp-btn mp-btn--fill" href="#materi-2" data-go="2">Materi 2 →</a>
+  </nav>
+  </section>
+
+  <section class="mp-materi" id="materi-2" hidden>
+
+    <div class="mp-hero">
+      <div class="mp-wrap">
+        <div class="mp-crumb"><i></i>Materi 2 · Sumber Bacaan</div>
+        <h1 class="mp-title">K3LH dan <em>Budaya Kerja</em></h1>
+        <p class="mp-lede">Pekerjaan TJKT sering berarti naik tiang, menarik kabel fiber, memegang perangkat bertegangan, dan bekerja berjam-jam di depan layar. K3LH (Keselamatan, Kesehatan Kerja, dan Lingkungan Hidup) memastikan pekerjaan itu selesai tanpa ada yang terluka. Budaya kerja membuat cara aman itu menjadi kebiasaan sehari-hari.</p>
+        <ul class="k3-stats">
+          <li><b>8</b><span>topik bacaan</span></li>
+          <li><b>5</b><span>tingkat pengendalian risiko</span></li>
+          <li><b>5R</b><span>budaya kerja</span></li>
+          <li><b data-k3-n="kasus">12</b><span>situasi kerja nyata</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="mp-wrap k3-tocwrap" aria-label="Daftar isi">
+      <nav class="k3-toc">
+        <a href="#k3-bahaya"><b>1</b><span>Bahaya, risiko, dan insiden</span></a>
+        <a href="#k3-hierarki"><b>2</b><span>Hierarki pengendalian risiko</span></a>
+        <a href="#k3-apd"><b>3</b><span>APD dan perlengkapan keselamatan</span></a>
+        <a href="#k3-tinggi"><b>4</b><span>Kerja di ketinggian dan kabel fiber</span></a>
+        <a href="#k3-5r"><b>5</b><span>Budaya kerja 5R</span></a>
+        <a href="#k3-ergo"><b>6</b><span>Ergonomi</span></a>
+        <a href="#k3-lingk"><b>7</b><span>Lingkungan hidup dan limbah</span></a>
+        <a href="#k3-profesional"><b>8</b><span>Budaya kerja profesional</span></a>
+      </nav>
+    </section>
+
+    <!-- 1 -->
+    <section class="mp-wrap k3-sec" id="k3-bahaya">
+      <div class="k3-sec__head"><span class="k3-sec__n">1</span><h2 class="mp-h2">Bahaya, risiko, dan insiden</h2></div>
+      <div class="k3-two">
+        <div>
+          <p><b>Bahaya</b> adalah sumber, kondisi, atau tindakan yang berpotensi menimbulkan cedera, penyakit, kerusakan, atau pencemaran. Contohnya tiang tinggi, kabel berserakan, tangga rusak, atau bahan pembersih yang tidak sesuai.</p>
+          <p><b>Risiko</b> adalah seberapa mungkin bahaya itu benar-benar menimbulkan dampak dan seberapa parah dampaknya. Karena itu bahaya yang sama bisa berisiko kecil atau besar, tergantung cara kerja kita.</p>
+          <p>Kadang bahaya hampir menjadi kecelakaan. Teknisi hampir tersandung tetapi tidak cedera disebut <b>near miss</b>. Kejadian seperti ini tetap harus dilaporkan dan dianalisis, bukan disembunyikan atau dianggap urusan pribadi, karena penyebabnya masih ada dan bisa melukai orang lain.</p>
+        </div>
+        <div class="k3-flow">
+          <h3>Pelaporan insiden</h3>
+          <p class="k3-flow__def">Pencatatan kejadian, hampir celaka, penyebab, tindakan awal, dan tindak lanjut untuk mencegah pengulangan.</p>
+          <ol>
+            <li><b>Kejadian</b><span>termasuk hampir celaka</span></li>
+            <li><b>Penyebab</b><span>mengapa terjadi</span></li>
+            <li><b>Tindakan awal</b><span>menangani seketika</span></li>
+            <li><b>Tindak lanjut</b><span>memperbaiki sumber masalah</span></li>
+            <li><b>Tidak berulang</b><span>tujuan akhirnya</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="mp-wrap k3-sec" id="k3-hierarki">
+      <div class="k3-sec__head"><span class="k3-sec__n">2</span><h2 class="mp-h2">Hierarki pengendalian risiko</h2></div>
+      <p class="k3-lead">Ada lima cara mengendalikan bahaya. Urutannya dari yang paling efektif ke yang terakhir: lebih baik menghilangkan bahaya daripada hanya melindungi diri darinya.</p>
+      <ol class="k3-ladder" data-k3-ladder></ol>
+      <div class="k3-note"><b>Jangan terjebak.</b> APD berada di urutan terakhir. Ia melindungi pekerja, tetapi <i>tidak menghilangkan</i> sumber bahaya. Poster saja atau mengandalkan keberanian pekerja bukan pengendalian yang efektif. Yang benar adalah menghilangkan bahaya bila mungkin, memakai pengendalian teknik, lalu menambah SOP dan APD sebagai lapisan tambahan.</div>
+    </section>
+
+    <!-- 3 -->
+    <section class="mp-wrap k3-sec" id="k3-apd">
+      <div class="k3-sec__head"><span class="k3-sec__n">3</span><h2 class="mp-h2">APD dan perlengkapan keselamatan</h2></div>
+      <p class="k3-lead">Enam perlengkapan dan prosedur yang paling sering muncul di pekerjaan TJKT. Hafalkan fungsi masing-masing dengan kalimat definisinya.</p>
+      <div class="k3-gears" data-k3-apd></div>
+      <a class="k3-xref" href="#materi-1" data-go="1"><img src="img/av04.webp" alt="" width="56" height="56"><span><b>Terhubung dengan Materi 1</b>Teknisi Fiber Optik bekerja di tiang dan di jalur akses, sehingga helm, harness, dan sarung tangan menjadi perlengkapan wajibnya.</span></a>
+    </section>
+
+    <!-- 4 -->
+    <section class="mp-wrap k3-sec" id="k3-tinggi">
+      <div class="k3-sec__head"><span class="k3-sec__n">4</span><h2 class="mp-h2">Kerja di ketinggian dan penanganan kabel fiber</h2></div>
+      <p class="k3-lead">Kasus yang sering muncul: instalasi FTTH jalur udara dari ODP ke rumah pelanggan, melewati tiang setinggi sekitar 6–8 meter, di cuaca panas dan berangin. Risikonya dua: teknisi jatuh dan kabel rusak.</p>
+      <div class="k3-do">
+        <div class="k3-do__ok">
+          <h3>Lakukan</h3>
+          <ul>
+            <li>Menilai cuaca dan lokasi sebelum naik.</li>
+            <li>Memakai full-body harness dengan anchor yang benar, ditambah helm dan sepatu safety.</li>
+            <li>Mengamankan area di bawah tempat kerja.</li>
+            <li>Tetap berkomunikasi dengan tim.</li>
+            <li>Mengamankan tangga sebelum dipakai. Jika belum aman, hentikan pekerjaan.</li>
+            <li>Memakai kabel drop outdoor (fiber single-mode) sesuai standar FTTH.</li>
+            <li>Mengendalikan bending radius dan tarikan kabel.</li>
+            <li>Memakai sarung tangan kerja saat menangani kabel.</li>
+          </ul>
+        </div>
+        <div class="k3-do__no">
+          <h3>Hindari</h3>
+          <ul>
+            <li>Bekerja sendiri tanpa komunikasi.</li>
+            <li>Memakai tangga rusak.</li>
+            <li>Bekerja terburu-buru tanpa mengamankan tangga.</li>
+            <li>Menarik kabel saat angin kencang tanpa evaluasi.</li>
+            <li>Memakai kabel indoor di luar ruangan.</li>
+            <li>Menarik kabel tanpa memperhatikan standar bending radius.</li>
+            <li>Menganggap APD tidak perlu karena pekerjaannya singkat.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="mp-wrap k3-sec" id="k3-5r">
+      <div class="k3-sec__head"><span class="k3-sec__n">5</span><h2 class="mp-h2">Budaya kerja 5R</h2></div>
+      <p class="k3-lead">5R adalah lima kebiasaan menjaga tempat kerja. Urutannya penting: pilah, tata, bersihkan, standarkan, lalu disiplin menjalankannya.</p>
+      <div class="k3-rs" data-k3-5r></div>
+      <div class="k3-note"><b>Cara membedakan.</b> Ringkas = <i>memilah</i>. Rapi = <i>menata dan memberi label</i>. Resik = <i>membersihkan sambil memeriksa</i>. Rawat = <i>menstandarkan</i> tiga R pertama. Rajin = <i>disiplin konsisten</i>. Ringkas saja belum berarti membersihkan, dan membersihkan saja belum berarti 5R.</div>
+    </section>
+
+    <!-- 6 -->
+    <section class="mp-wrap k3-sec" id="k3-ergo">
+      <div class="k3-sec__head"><span class="k3-sec__n">6</span><h2 class="mp-h2">Ergonomi</h2></div>
+      <div class="k3-two">
+        <div>
+          <p><b>Ergonomi</b> adalah penyesuaian alat, posisi, dan metode kerja terhadap kemampuan manusia untuk mengurangi kelelahan serta cedera.</p>
+          <p>Contoh: posisi monitor terlalu rendah membuat teknisi membungkuk lama. Risiko utamanya adalah <b>keluhan muskuloskeletal</b> (nyeri otot, sendi, dan tulang) akibat ergonomi yang buruk. Ini tidak ada hubungannya dengan jenis kabel, VLAN, alamat IP, atau loss optik.</p>
+        </div>
+        <ul class="k3-checks">
+          <li>Atur tinggi monitor sejajar dengan pandangan mata.</li>
+          <li>Atur posisi duduk dan alat agar tidak membungkuk lama.</li>
+          <li>Selingi pekerjaan yang lama dengan peregangan.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="mp-wrap k3-sec" id="k3-lingk">
+      <div class="k3-sec__head"><span class="k3-sec__n">7</span><h2 class="mp-h2">Lingkungan hidup dan limbah</h2></div>
+      <p class="k3-lead">Pekerjaan jaringan menghasilkan sisa kabel, kemasan, baterai, dan limbah elektronik. Kepedulian lingkungan adalah bagian dari menyelesaikan pekerjaan.</p>
+      <div class="k3-do">
+        <div class="k3-do__ok">
+          <h3>Lakukan</h3>
+          <ul>
+            <li>Memilah limbah elektronik.</li>
+            <li>Mengelola baterai dan bahan pembersih sesuai aturan.</li>
+            <li>Mengurangi penggunaan bahan yang tidak perlu.</li>
+            <li>Membersihkan area dan membuang sisa kabel serta kemasan pada tempatnya setelah instalasi.</li>
+          </ul>
+        </div>
+        <div class="k3-do__no">
+          <h3>Hindari</h3>
+          <ul>
+            <li>Membuang baterai ke selokan.</li>
+            <li>Membakar kabel.</li>
+            <li>Menganggap limbah hanya urusan petugas kebersihan.</li>
+            <li>Meninggalkan area kerja kotor setelah perangkat menyala.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="mp-wrap k3-sec" id="k3-profesional">
+      <div class="k3-sec__head"><span class="k3-sec__n">8</span><h2 class="mp-h2">Budaya kerja profesional</h2></div>
+      <p class="k3-lead"><b>SOP industri</b> adalah urutan kerja terdokumentasi yang memastikan keselamatan, konsistensi, ketertelusuran, dan mutu hasil. Budaya kerja yang baik tampak ketika SOP diikuti saat tidak ada yang mengawasi. Berikut situasi yang sering diujikan, beserta tindakan yang tepat.</p>
+      <div class="k3-cases" data-k3-kasus></div>
+    </section>
+
+    <!-- Penutup -->
+    <section class="mp-sum k3-close">
+      <div class="mp-wrap">
+        <h2 class="mp-h2">Ringkasan istilah</h2>
+        <p>Cari istilah atau kata dalam definisinya. Gunakan untuk mengulang sebelum latihan soal.</p>
+        <div class="k3-search"><input type="search" data-k3-q placeholder="Cari istilah, mis. harness, rapi, SOP…" aria-label="Cari istilah"></div>
+        <div class="mp-tablewrap">
+          <table class="mp-table k3-glos">
+            <thead><tr><th>Istilah</th><th>Kelompok</th><th>Arti</th></tr></thead>
+            <tbody data-k3-glos></tbody>
+          </table>
+        </div>
+        <p class="k3-empty" data-k3-empty hidden>Tidak ada istilah yang cocok.</p>
+      </div>
+    </section>
+
+    <section class="mp-wrap k3-sec k3-tips">
+      <div class="k3-sec__head"><span class="k3-sec__n">✓</span><h2 class="mp-h2">Strategi menjawab soal</h2></div>
+      <div class="k3-two">
+        <div>
+          <h3 class="k3-h3">Soal “istilah yang paling tepat”</h3>
+          <p>Cari kata kunci pada definisinya, lalu cocokkan.</p>
+          <table class="mp-table k3-key"><tbody data-k3-kunci></tbody></table>
+        </div>
+        <div>
+          <h3 class="k3-h3">Soal Benar/Salah</h3>
+          <p>Nilai setiap pernyataan sendiri-sendiri. Semua pernyataan bisa sekaligus Benar, sekaligus Salah, atau campuran. Periksa apakah istilahnya dipasangkan dengan definisi yang tepat.</p>
+          <h3 class="k3-h3">Soal pilihan ganda kompleks (lebih dari satu jawaban)</h3>
+          <ul class="k3-bul">
+            <li>Nilai tiap opsi secara mandiri, jangan berhenti setelah menemukan satu jawaban.</li>
+            <li>Cocokkan dengan tujuan dan SOP.</li>
+            <li>Opsi yang jelas berbahaya hampir pasti salah: bekerja sendiri tanpa komunikasi, tangga rusak, membuang baterai ke selokan, membakar kabel.</li>
+            <li>Jangan memilih semua opsi teknis tanpa analisis.</li>
+          </ul>
+          <h3 class="k3-h3">Soal kasus</h3>
+          <p>Jawaban yang tepat hampir selalu: hentikan pekerjaan bila tidak aman, laporkan, dan tetap ikuti SOP. Jawaban yang menyembunyikan masalah, memalsukan laporan, atau melewati prosedur selalu keliru.</p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="mp-wrap mp-nav" aria-label="Navigasi materi">
+      <a class="mp-btn" href="#materi-1" data-go="1">← Materi 1</a>
+    </nav>
+  </section>
+
+</div>
