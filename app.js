@@ -83,7 +83,7 @@ function clearSession() {
 function forceLogout(msg) { clearSession(); showLogin(msg); }
 
 function go(p) {
-  if (user && user.wajib_ganti_password && p !== "home") {
+  if (false) {
     page = "home"; toast("Ganti password di Beranda terlebih dahulu."); render(); return;
   }
   page = p;
@@ -123,7 +123,7 @@ function boardPanel() {
 
 function home() {
   const isGuru = user.role === "guru";
-  const pw = user.wajib_ganti_password ? `<div class="panel password-panel"><p class="eyebrow">TINDAKAN WAJIB</p><h2>Ganti Password Awal</h2><p class="muted">Untuk keamanan akun, buat password baru terlebih dahulu. Menu latihan dan simulasi akan terbuka setelah password berhasil diperbarui.</p><form id="changepasswordform" class="password-form"><label>Password baru</label><input id="newpassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimal 8 karakter" required><label>Konfirmasi password baru</label><input id="confirmpassword" type="password" minlength="8" autocomplete="new-password" placeholder="Ketik ulang password baru" required><p id="passworderr" class="error hidden"></p><button class="primary" type="submit">Simpan Password Baru</button></form></div>` : "";
+  const pw = "";
   const tiles = subjects.slice(0, 6).map((s, i) => {
     const last = history.find(x => x.jenis === "latihan" && x.subjek === s);
     return `<button class="tile" data-subject="${esc(s)}"><span class="symbol">${icons[i]}</span><span><strong>${esc(s)}</strong><small>${last ? `Nilai terakhir: ${esc(last.nilai)} • ${esc(fmtDate(last.tanggal))}` : "Belum pernah dicoba"}</small></span></button>`;
