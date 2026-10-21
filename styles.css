@@ -6,3 +6,18 @@
 
 /* Materi page additions */
 .notice{background:#EDF4FB;border:1px solid #DCE9F7;border-radius:12px;padding:14px 17px;margin-bottom:18px}.notice b{color:var(--navy)}.notice p{font-size:11px;color:#667B94;line-height:1.6;margin:6px 0 0}.materi-card{min-height:unset}.topiclist{padding-left:18px;margin:0 0 16px;color:#52647b;font-size:11px;line-height:1.65}.topiclist li{margin:4px 0}.materi-card button{margin-top:auto}
+
+/* Soal PGK, dropdown submateri, dan filter laporan */
+.hint{font-size:11px;color:var(--muted);margin:-8px 0 12px}
+.subselect{width:100%;padding:10px;border:1px solid #DCE4ED;border-radius:9px;margin:0 0 10px;font:inherit;font-size:11px;background:white;color:var(--text)}
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}.filters .subselect{margin:0}
+.catrow{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:9px;padding:13px;margin:9px 0;font-size:12px;line-height:1.5}
+.cattext{flex:1}.catbtns{display:flex;gap:6px;flex-shrink:0}
+.catbtn{border:1px solid #DCE4ED;background:white;border-radius:7px;padding:8px 12px;font-size:11px;font-weight:700;color:#53647B}
+.catbtn.on{background:var(--blue);border-color:var(--blue);color:white}
+.option[role=checkbox] .letter{border-radius:5px}
+@media(max-width:750px){.catrow{flex-wrap:wrap}.catbtns{width:100%}.catbtn{flex:1}}
+
+
+/* Teks soal: pertahankan baris baru dari bank soal */
+.question,.option span:last-child,.cattext{white-space:pre-line}

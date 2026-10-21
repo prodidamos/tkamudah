@@ -1,60 +1,37 @@
 # Latihan TKA TJKT — Frontend
 
-Frontend statis HTML/CSS/JavaScript. Cocok untuk pratinjau dan dasar integrasi GitHub Pages.
+Frontend statis HTML/CSS/JavaScript untuk GitHub Pages. Semua soal, penilaian, riwayat, dan laporan berasal dari backend Google Apps Script (`Code.gs`). **Tidak ada mode demo dan tidak ada kunci jawaban di frontend.**
 
-## Jalankan pratinjau
-Buka `index.html` di browser.
-- Siswa demo: `demo` / `1234`
-- Guru demo: `guru` / `1234`
+## Berkas (aman di-commit)
+- `index.html`, `styles.css`, `app.js` — antarmuka.
+- `config.js` — `apiUrl` Web App Apps Script dan `demoMode: false`.
+- `question-bank.js` — hanya indeks materi (subjek, submateri, jumlah **soal aktif**) untuk dropdown dan halaman Latihan. Dibuat dari `soal kumpulan tka tjkt 11.csv`.
+- `materi/` — halaman bacaan Materi 1 (Profesi dan Dunia Kerja TJKT) dan Materi 2 (K3LH dan Budaya Kerja), dimuat oleh menu **Materi**. Lihat `materi/PANDUAN.md`.
 
-Mode pratinjau memakai soal contoh sintetis; bukan bank soal resmi dan nilainya tidak disimpan di database.
+## Berkas privat (JANGAN di-commit ke repository publik)
+- `Code.gs` — backend; berisi ID spreadsheet.
+- `BankSoal-import.csv` — isi sheet `BankSoal`; berisi kunci jawaban.
+- CSV siswa untuk impor — berisi password awal; hapus setelah impor.
 
-## Hubungkan backend
-Setelah Apps Script Web App dibuat dan diuji, isi `config.js`:
+## Kontrak API (POST `text/plain`, respons `{ ok: true, ... }` atau `{ ok: false, error }`)
+`login`, `logout`, `getDashboard`, `getHistory`, `getReport`, `startPractice`, `startSimulation`, `getAttempt`, `finishAttempt`, `changePassword`, `importStudents`.
 
-```js
-window.TKA_CONFIG = { apiUrl: "URL_WEB_APP_APPS_SCRIPT", demoMode: false };
-```
+Format jawaban pada `finishAttempt` (`answers` = objek `{ question_id: jawaban }`):
+- PG: `"B"`
+- PGK MCMA / Multi Jawaban: `["A","C"]`
+- PGK Kategori: `{ "A": "BENAR", "B": "SALAH", "C": "BENAR" }`
 
-Kontrak action frontend saat ini: `login`, `logout`, `startPractice`, `startSimulation`, `finishAttempt`, dan `getReport`. Sesuaikan `app.js` dengan API backend final jika nama action/payload berbeda.
+Jenis soal (`tipe`: `pg` / `multi` / `kategori`) ditentukan server dari kunci dan label `bentuk_soal` (semua varian penulisan label dikenali). Penilaian semua-atau-tidak-sama-sekali per soal.
 
-## Penting
-- Ini belum menjadi sistem produksi dan belum terhubung ke Google Spreadsheet.
-- Jangan menaruh kunci jawaban bank soal di JavaScript frontend.
-- Sebelum digunakan siswa sungguhan, hubungkan backend, uji CORS, autentikasi, batas waktu, penilaian server, dan akses guru.
-- Jawaban pratinjau hanya berada di memori halaman dan bisa hilang jika halaman dimuat ulang.
+## Perilaku
+- Wajib ganti password awal; sesi bertahan saat halaman dimuat ulang (`sessionStorage`).
+- Latihan per subjek: submateri opsional. Submateri dengan kurang dari 5 soal tampil nonaktif di dropdown (backend menolak < 5).
+- Pengiriman jawaban diterima sampai **90 detik** setelah batas waktu (`SUBMIT_GRACE_SECONDS`), sehingga pengiriman otomatis saat waktu habis tetap dinilai.
+- Opsi berisi "—" dianggap kosong dan tidak ditampilkan.
+- Laporan guru: filter kelas dan jenis, ringkasan per kelas, 100 nilai terbaru.
 
-
-## Wajib ganti password pada Home
-- Jika respons login backend mengandung `wajib_ganti_password: true` (atau `must_change_password: true`), formulir ganti password tampil di Home.
-- Navigasi ke latihan dan simulasi ditahan sampai perubahan berhasil.
-- Frontend memanggil endpoint Apps Script `changePassword` dengan `{ new_password, confirm_password }` beserta token sesi. Backend wajib memvalidasi sesi dan status akun, menyimpan hash+salt password baru, lalu mengubah `wajib_ganti_password` menjadi `FALSE`.
-- Frontend tidak menyimpan password baru dan tidak dapat mengubah password saat backend belum dikonfigurasi.
-- Login backend menerima `{ username, password }` dan sebaiknya mengembalikan `token`, `nama`, `role`, serta `wajib_ganti_password`.
-- Ini perubahan frontend saja; backend Apps Script harus menerapkan endpoint dan aturan akses yang sama.
-
-
-## Pembaruan bank soal offline
-- `question-bank.js` berisi 570 baris dari `soal kumpulan tka tjkt 8.csv`, termasuk opsi A–E.
-- Mode offline mengambil soal dari bank CSV, bukan lagi 10 soal contoh.
-- Simulasi offline berisi 25 soal acak dan selalu menyertakan 4 soal berlabel `Pusmendik (6 soal)` dari CSV.
-- Untuk latihan per subjek, soal dipilih acak dari kolom `MATERI UTAMA`.
-- Ini tetap mode demo lokal: data/nilai tersimpan hanya pada sesi browser dan bukan bukti ujian yang aman. Kunci jawaban berada di file frontend sehingga jangan gunakan mode ini untuk ujian berpengawasan atau penilaian resmi.
-
-
-## Pembaruan UI
-- Menu Materi mengelompokkan submateri yang tercatat pada bank soal CSV.
-- Beranda menampilkan nilai terakhir untuk setiap subjek yang pernah dicoba pada sesi browser saat ini.
-- Nilai lokal demo menggunakan sessionStorage, sehingga bukan arsip permanen dan tidak tersinkron ke guru.
-
-
-## Bank soal terbaru
-Frontend ini memuat `question-bank.js` yang dibangun dari `soal kumpulan tka tjkt 10.csv` (678 baris). Untuk memperbarui bank soal berikutnya, regenerasi file `question-bank.js` dari CSV baru dengan mempertahankan nama file ini, lalu commit ke repository `tkamudah`.
-
-
-## Impor siswa dari dashboard guru
-- Menu `Impor Siswa` tampil untuk akun dengan role `guru`.
-- Unggah CSV dengan kolom `KELAS`, `NIS`, `NAMA LENGKAP`, `USER`, `PASSWORD` (pemisah koma atau titik koma).
-- Frontend mengirim data ke action `importStudents`; backend harus sudah terhubung di `config.js` dan menjalankan `importStudents_`.
-- Backend hanya menambahkan username baru, meng-hash password, dan melewati username yang sudah ada.
-- Jangan unggah CSV yang berisi password ke repositori publik.
+## Memperbarui bank soal
+1. Dari CSV baru buat ulang `BankSoal-import.csv` dan `question-bank.js` (id soal = `Q` + hash dari nomor soal asli dan asal data, jadi stabil selama keduanya tidak berubah; kolom `aktif` = FALSE menyembunyikan soal tanpa menghapusnya).
+2. **Impor di Apps Script hanya menambah `question_id` baru dan tidak mengubah soal yang sudah ada.** Untuk memperbarui soal lama: di sheet `BankSoal` hapus semua baris data (pertahankan baris judul), tempel isi `BankSoal-import.csv`, lalu jalankan `clearBankCache()`.
+3. Jalankan `auditBank()` di editor Apps Script dan pastikan "Tidak ada masalah pada data soal".
+4. Commit hanya `question-bank.js` ke repository `tkamudah`.
