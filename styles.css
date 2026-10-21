@@ -3,3 +3,10 @@
 @media(max-width:750px){.sidebar{transform:translateX(-100%);transition:.2s;width:245px}.sidebar.open{transform:translateX(0);box-shadow:10px 0 30px #173b6715}main{margin-left:0}header{height:60px;padding:0 15px}.mobile{display:block}.online{display:none}#content{padding:21px 15px}.welcome{padding:22px}.welcome h1{font-size:22px}.welcomeart{display:none}.subjectgrid{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}.quizlayout{grid-template-columns:1fr}.quizside{order:-1}.qmap{grid-template-columns:repeat(8,1fr)}.quizbox,.quizside{padding:16px}.rules{grid-template-columns:1fr}.simbanner{padding:18px}.simicon{font-size:25px;padding:12px}.pagehead{display:block}.chip{display:inline-block;margin-top:10px}.quizcontrols{flex-wrap:wrap}.quizcontrols button{flex:1}.actions{flex-wrap:wrap}}
 
 .password-panel{margin:0 0 20px;border:1px solid #e6b85c;background:#fffdf6}.password-panel h2{margin:4px 0 8px}.password-form{display:grid;gap:10px;max-width:480px;margin-top:18px}.password-form input{width:100%;padding:12px 13px;border:1px solid #d5deea;border-radius:10px;font:inherit;background:#fff}.password-form label{font-weight:650;font-size:14px}.password-form button{justify-self:start}.password-form button:disabled{opacity:.6;cursor:wait}
+
+/* Materi page additions */
+.notice{background:#EDF4FB;border:1px solid #DCE9F7;border-radius:12px;padding:14px 17px;margin-bottom:18px}.notice b{color:var(--navy)}.notice p{font-size:11px;color:#667B94;line-height:1.6;margin:6px 0 0}.materi-card{min-height:unset}.topiclist{padding-left:18px;margin:0 0 16px;color:#52647b;font-size:11px;line-height:1.65}.topiclist li{margin:4px 0}.materi-card button{margin-top:auto}
+
+/* Tombol menyelesaikan sesi dibuat netral agar fokus utama tetap pada navigasi soal. */
+#finishside{background:#111111!important;color:#ffffff!important;border:1px solid #111111!important;box-shadow:none!important}
+#finishside:hover{background:#292929!important;border-color:#292929!important}

@@ -40,3 +40,13 @@ Kontrak action frontend saat ini: `login`, `logout`, `startPractice`, `startSimu
 - Simulasi offline berisi 25 soal acak dan selalu menyertakan 4 soal berlabel `Pusmendik (6 soal)` dari CSV.
 - Untuk latihan per subjek, soal dipilih acak dari kolom `MATERI UTAMA`.
 - Ini tetap mode demo lokal: data/nilai tersimpan hanya pada sesi browser dan bukan bukti ujian yang aman. Kunci jawaban berada di file frontend sehingga jangan gunakan mode ini untuk ujian berpengawasan atau penilaian resmi.
+
+
+## Pembaruan UI
+- Menu Materi mengelompokkan submateri yang tercatat pada bank soal CSV.
+- Beranda menampilkan nilai terakhir untuk setiap subjek yang pernah dicoba pada sesi browser saat ini.
+- Nilai lokal demo menggunakan sessionStorage, sehingga bukan arsip permanen dan tidak tersinkron ke guru.
+
+
+## Bank soal terbaru
+Frontend ini memuat `question-bank.js` yang dibangun dari `soal kumpulan tka tjkt 10.csv` (678 baris). Untuk memperbarui bank soal berikutnya, regenerasi file `question-bank.js` dari CSV baru dengan mempertahankan nama file ini, lalu commit ke repository `tkamudah`.
