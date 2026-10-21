@@ -64,7 +64,7 @@ function api(action, payload = {}) {
       }
       if (action === "login") {
         if (!r.user || !r.token) throw Error("Respons login dari backend tidak lengkap.");
-        return { ...r.user, token: r.token, wajib_ganti_password: r.wajib_ganti_password, history: r.history || [], leaderboard: r.leaderboard || null };
+        return { ...r.user, token: r.token, wajib_ganti_password: false, history: r.history || [], leaderboard: r.leaderboard || null };
       }
       return r;
     });
@@ -98,7 +98,7 @@ function login(u) {
   const { history: h, leaderboard: lb, ...rest } = u;   // riwayat dan papan nilai ikut dalam respons login; tidak perlu permintaan tambahan
   history = Array.isArray(h) ? h : [];
   board = lb && Array.isArray(lb.rows) ? lb : null;
-  user = { ...rest, wajib_ganti_password: !!(u.wajib_ganti_password || u.must_change_password) };
+  user = { ...rest, wajib_ganti_password: false };
   store("tka_user", user);
   $("#login").classList.add("hidden");
   $("#username").textContent = user.nama;
@@ -416,6 +416,6 @@ $("#loginform").onsubmit = e => {
 const saved = load("tka_user");
 if (saved && saved.token && cfg.apiUrl) {
   user = saved;
-  api("getDashboard").then(d => login({ ...saved, wajib_ganti_password: d.wajib_ganti_password, history: d.history, leaderboard: d.leaderboard })).catch(() => { clearSession(); showLogin(); });
+  api("getDashboard").then(d => login({ ...saved, wajib_ganti_password: false, history: d.history, leaderboard: d.leaderboard })).catch(() => { clearSession(); showLogin(); });
 }
 })();
