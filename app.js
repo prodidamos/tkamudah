@@ -18,7 +18,7 @@ const $ = s => document.querySelector(s);
 const cfg = window.TKA_CONFIG || { apiUrl: "" };
 const materi = window.TKA_MATERI || [];
 
-let user = null, page = "home", attempt = null, history = [], pending = null, result = null, timer = null;
+let user = null, page = "home", attempt = null, history = [], pending = null, result = null, timer = null, board = null;
 let report = null, reportFilter = { kelas: "", jenis: "" };
 
 /* ---------- util ---------- */
@@ -53,7 +53,7 @@ function api(action, payload = {}) {
       }
       if (action === "login") {
         if (!r.user || !r.token) throw Error("Respons login dari backend tidak lengkap.");
-        return { ...r.user, token: r.token, wajib_ganti_password: r.wajib_ganti_password, history: r.history || [] };
+        return { ...r.user, token: r.token, wajib_ganti_password: r.wajib_ganti_password, history: r.history || [], leaderboard: r.leaderboard || null };
       }
       return r;
     });
@@ -84,8 +84,9 @@ function go(p) {
 }
 
 function login(u) {
-  const { history: h, ...rest } = u;           // riwayat ikut dalam respons login; tidak perlu permintaan tambahan
+  const { history: h, leaderboard: lb, ...rest } = u;   // riwayat dan papan nilai ikut dalam respons login; tidak perlu permintaan tambahan
   history = Array.isArray(h) ? h : [];
+  board = lb && Array.isArray(lb.rows) ? lb : null;
   user = { ...rest, wajib_ganti_password: !!(u.wajib_ganti_password || u.must_change_password) };
   store("tka_user", user);
   $("#login").classList.add("hidden");
@@ -98,6 +99,17 @@ function login(u) {
 }
 
 /* ---------- halaman ---------- */
+function boardPanel() {
+  const rows = board ? board.rows.slice().sort((x, y) => (y.nilai_tertinggi ?? -1) - (x.nilai_tertinggi ?? -1) || String(x.kelas).localeCompare(String(y.kelas))) : [];
+  const upd = board && board.diperbarui ? new Date(board.diperbarui) : null;
+  const when = upd && !isNaN(upd) ? upd.toLocaleString("id-ID", { timeZone: "Asia/Jakarta", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) + " WIB" : "";
+  const body = rows.length ? rows.map((r, i) => {
+    const has = r.nilai_tertinggi !== null && r.nilai_tertinggi !== undefined, mine = user && r.kelas === user.kelas;
+    return `<div class="boardrow ${mine ? "mine" : ""}"><span class="boardrank">${has ? i + 1 : "–"}</span><div class="boardmain"><div class="boardline"><b>${esc(r.kelas)}${mine ? " <em>kelasmu</em>" : ""}</b><strong>${has ? esc(r.nilai_tertinggi) : "—"}</strong></div><div class="boardbar"><span style="width:${has ? Math.max(2, Math.min(100, r.nilai_tertinggi)) : 0}%"></span></div>${has ? `<small>${r.jenis === "simulasi" ? "Simulasi TKA" : "Latihan subjek"}</small>` : `<small>Belum ada nilai</small>`}</div></div>`;
+  }).join("") : `<p class="muted">Papan nilai belum tersedia. Akan muncul setelah diperbarui pukul 07.00 WIB.</p>`;
+  return `<div class="sectionhead" style="margin-top:25px"><h2>Nilai tertinggi per kelas</h2><span class="muted boardwhen">Diperbarui setiap pukul 07.00 WIB${when ? " · terakhir " + esc(when) : ""}</span></div><div class="panel board">${body}</div>`;
+}
+
 function home() {
   const isGuru = user.role === "guru";
   const pw = user.wajib_ganti_password ? `<div class="panel password-panel"><p class="eyebrow">TINDAKAN WAJIB</p><h2>Ganti Password Awal</h2><p class="muted">Untuk keamanan akun, buat password baru terlebih dahulu. Menu latihan dan simulasi akan terbuka setelah password berhasil diperbarui.</p><form id="changepasswordform" class="password-form"><label>Password baru</label><input id="newpassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimal 8 karakter" required><label>Konfirmasi password baru</label><input id="confirmpassword" type="password" minlength="8" autocomplete="new-password" placeholder="Ketik ulang password baru" required><p id="passworderr" class="error hidden"></p><button class="primary" type="submit">Simpan Password Baru</button></form></div>` : "";
@@ -110,7 +122,7 @@ function home() {
   return `${pw}<div class="welcome"><div><p class="eyebrow">RUANG LATIHAN TKA</p><h1>Halo, ${esc(user.nama)}! 👋</h1><p>Persiapkan diri menghadapi Tes Kompetensi Akademik dengan berlatih secara terarah. Pilih subjek, kerjakan soal, dan evaluasi hasil belajarmu.</p>${isGuru ? `<button data-go="report">Lihat laporan nilai　→</button>` : `<button data-go="subjects">Mulai latihan　→</button>`}</div><div class="welcomeart">▤</div></div>
 <div class="stats"><div class="stat"><span>Total latihan</span><strong>${isGuru ? "—" : history.length}</strong><small>Tersimpan di server</small></div><div class="stat"><span>Nilai rata-rata</span><strong>${isGuru ? "—" : avgOf(history)}</strong><small>Seluruh sesi</small></div><div class="stat"><span>Subjek tersedia</span><strong>${subjects.length}</strong><small>Bidang kompetensi TJKT</small></div><div class="stat"><span>Durasi simulasi</span><strong>${SIM.minutes} <small>menit</small></strong><small>${SIM.count} soal</small></div></div>
 <div class="sectionhead"><h2>Jelajahi subjek</h2><button class="link" data-go="subjects">Lihat semua →</button></div>
-<div class="dashgrid"><div class="panel"><div class="tiles">${tiles}</div></div><div class="panel"><div class="sectionhead"><h2>Aktivitas terbaru</h2></div>${acts}</div></div>`;
+<div class="dashgrid"><div class="panel"><div class="tiles">${tiles}</div></div><div class="panel"><div class="sectionhead"><h2>Aktivitas terbaru</h2></div>${acts}</div></div>${boardPanel()}`;
 }
 
 function topicsOf(subject) { return materi.filter(m => m.subjek === subject); }
@@ -400,6 +412,6 @@ $("#loginform").onsubmit = e => {
 const saved = load("tka_user");
 if (saved && saved.token && cfg.apiUrl) {
   user = saved;
-  api("getDashboard").then(d => login({ ...saved, wajib_ganti_password: d.wajib_ganti_password, history: d.history })).catch(() => { clearSession(); showLogin(); });
+  api("getDashboard").then(d => login({ ...saved, wajib_ganti_password: d.wajib_ganti_password, history: d.history, leaderboard: d.leaderboard })).catch(() => { clearSession(); showLogin(); });
 }
 })();

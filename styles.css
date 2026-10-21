@@ -21,3 +21,18 @@
 
 /* Teks soal: pertahankan baris baru dari bank soal */
 .question,.option span:last-child,.cattext{white-space:pre-line}
+
+/* Papan nilai tertinggi per kelas (diperbarui harian) */
+.boardwhen{font-size:11px}
+.board{display:grid;gap:14px}
+.boardrow{display:flex;gap:13px;align-items:center;padding:11px 13px;border-radius:11px;border:1px solid transparent}
+.boardrow.mine{background:#EDF5FD;border-color:#B9D4F0}
+.boardrank{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#EFF3F8;color:#53647B;font:800 12px 'Plus Jakarta Sans'}
+.boardrow:first-child .boardrank{background:#FFF1D6;color:#B07408}
+.boardmain{flex:1;min-width:0}
+.boardline{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.boardline b{font-size:13px;color:var(--navy)}.boardline em{font-style:normal;font-size:10px;font-weight:700;color:var(--blue);background:#DDEBFA;padding:2px 7px;border-radius:99px;margin-left:6px}
+.boardline strong{font:800 20px 'Plus Jakarta Sans';color:var(--navy)}
+.boardbar{height:7px;background:#EDF1F6;border-radius:8px;overflow:hidden;margin:7px 0 5px}
+.boardbar span{display:block;height:100%;background:var(--green);border-radius:8px}
+.boardmain small{font-size:10px;color:#9AA5B5}

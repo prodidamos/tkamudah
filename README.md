@@ -28,6 +28,7 @@ Jenis soal (`tipe`: `pg` / `multi` / `kategori`) ditentukan server dari kunci da
 - Latihan per subjek: submateri opsional. Submateri dengan kurang dari 5 soal tampil nonaktif di dropdown (backend menolak < 5).
 - Pengiriman jawaban diterima sampai **90 detik** setelah batas waktu (`SUBMIT_GRACE_SECONDS`), sehingga pengiriman otomatis saat waktu habis tetap dinilai.
 - Opsi berisi "—" dianggap kosong dan tidak ditampilkan.
+- Beranda menampilkan **nilai tertinggi per kelas**. Angkanya snapshot harian yang dihitung backend sekitar pukul 07.00 WIB (trigger `refreshLeaderboard`), jadi tidak berubah sepanjang hari dan tidak perlu di-refresh. Setelah memasang Code.gs, jalankan `setupLeaderboardTrigger()` sekali di editor Apps Script.
 - Laporan guru: filter kelas dan jenis, ringkasan per kelas, 100 nilai terbaru.
 
 ## Memperbarui bank soal
