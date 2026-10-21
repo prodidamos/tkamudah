@@ -47,7 +47,80 @@ function api(action, payload = {}) {
     });
 }
 function home(){let avg=history.length?Math.round(history.reduce((s,x)=>s+x.nilai,0)/history.length):"—";return `${user.wajib_ganti_password?`<div class="panel password-panel"><p class="eyebrow">TINDAKAN WAJIB</p><h2>Ganti Password Awal</h2><p class="muted">Untuk keamanan akun, buat password baru terlebih dahulu. Menu latihan dan simulasi akan terbuka setelah password berhasil diperbarui.</p><form id="changepasswordform" class="password-form"><label>Password baru</label><input id="newpassword" type="password" minlength="8" autocomplete="new-password" placeholder="Minimal 8 karakter" required><label>Konfirmasi password baru</label><input id="confirmpassword" type="password" minlength="8" autocomplete="new-password" placeholder="Ketik ulang password baru" required><p id="passworderr" class="error hidden"></p><button class="primary" type="submit">Simpan Password Baru</button></form></div>`:""}<div class="welcome"><div><p class="eyebrow">RUANG LATIHAN TKA</p><h1>Halo, ${esc(user.nama)}! 👋</h1><p>Persiapkan diri menghadapi Tes Kompetensi Akademik dengan berlatih secara terarah. Pilih subjek, kerjakan soal, dan evaluasi hasil belajarmu.</p><button data-go="subjects">Mulai latihan　→</button></div><div class="welcomeart">▤</div></div><div class="stats"><div class="stat"><span>Total latihan</span><strong>${history.length}</strong><small>Sesi pratinjau</small></div><div class="stat"><span>Nilai rata-rata</span><strong>${avg}</strong><small>Hasil latihan lokal</small></div><div class="stat"><span>Subjek tersedia</span><strong>10</strong><small>Bidang kompetensi TJKT</small></div><div class="stat"><span>Durasi simulasi</span><strong>50 <small>menit</small></strong><small>25 soal</small></div></div><div class="sectionhead"><h2>Jelajahi subjek</h2><button class="link" data-go="subjects">Lihat semua →</button></div><div class="dashgrid"><div class="panel"><div class="tiles">${subjects.slice(0,6).map((s,i)=>{const last=[...history].reverse().find(x=>x.type!=="simulasi"&&x.subject===s);return `<button class="tile" data-subject="${esc(s)}"><span class="symbol">${icons[i]}</span><span><strong>${esc(s)}</strong><small>${last?`Nilai terakhir: ${last.nilai} • ${esc(last.tanggal)}`:"Belum pernah dicoba"}</small></span></button>`}).join("")}</div></div><div class="panel"><div class="sectionhead"><h2>Aktivitas terbaru</h2></div>${history.length?history.slice(-4).reverse().map(x=>`<div class="activity"><span class="symbol">✓</span><div><b>${esc(x.subject||"Simulasi TKA")}</b><small>${esc(x.tanggal)} • ${x.jumlah} soal</small></div><strong>${x.nilai}</strong></div>`).join(""):`<p class="muted">Belum ada aktivitas. Mulai latihan untuk melihat progresmu di sini.</p>`}</div></div>`}function subjectPage(){return `<div class="pagehead"><div><p class="eyebrow">BANK LATIHAN</p><h1>Soal per Subjek</h1><p>Pilih bidang yang ingin kamu pelajari. Sesi berisi 20 soal selama 30 menit.</p></div><span class="chip">◷ 20 soal / 30 menit</span></div><div class="subjectgrid">${subjects.map((s,i)=>`<article class="subjectcard"><div class="subjecttop"><span class="symbol">${icons[i]}</span><span class="pill">SUBJEK ${String(i+1).padStart(2,"0")}</span></div><h3>${esc(s)}</h3><p>Latih pemahaman konsep dan kompetensi pada bidang ini.</p><button class="secondary" data-subject="${esc(s)}">Pilih subjek →</button></article>`).join("")}</div>`}function materiPage(){const bank=window.TKA_QUESTION_BANK||[];const groups=subjects.map((s,i)=>{const rows=bank.filter(q=>q.subjek===s);const topics=[...new Set(rows.map(q=>q.submateri).filter(Boolean))];return `<article class="subjectcard materi-card"><div class="subjecttop"><span class="symbol">${icons[i]}</span><span class="pill">${rows.length} soal terkait</span></div><h3>${esc(s)}</h3><p>${topics.length?`${topics.length} kelompok materi dari bank soal:`:"Topik materi belum terpetakan pada CSV."}</p>${topics.length?`<ul class="topiclist">${topics.slice(0,8).map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`:`<p class="muted">Materi akan muncul setelah data submateri tersedia.</p>`}<button class="secondary" data-subject="${esc(s)}">Latihan subjek ini →</button></article>`}).join("");return `<div class="pagehead"><div><p class="eyebrow">PUSAT BELAJAR</p><h1>Materi TJKT</h1><p>Jelajahi kelompok materi berdasarkan submateri yang tercantum pada bank soal CSV. Pilih subjek untuk langsung berlatih.</p></div></div><div class="notice"><b>Catatan</b><p>Halaman ini mengelompokkan topik yang tersedia pada bank soal. CSV soal bukan modul pembelajaran lengkap, sehingga ringkasan teori belum ditampilkan sebagai materi ajar.</p></div><div class="subjectgrid">${groups}</div>`}function simulation(){return `<div class="pagehead"><div><p class="eyebrow">UJI KESIAPAN</p><h1>Simulasi TKA</h1><p>Biasakan diri mengerjakan tes dalam waktu terbatas.</p></div></div><div class="simbanner"><div><p class="eyebrow">SIMULASI MENYELURUH</p><h2>Uji kesiapanmu dalam satu sesi</h2><p>Kerjakan soal secara mandiri, atur waktu dengan baik, dan periksa jawaban sebelum menyelesaikan sesi. Saat ini simulasi memakai soal contoh.</p><button class="primary" id="startsim">Mulai simulasi →</button></div><div class="simicon">◷</div></div><div class="rules"><div><strong>25 soal</strong><span>Jumlah soal simulasi</span></div><div><strong>50 menit</strong><span>Batas waktu</span></div><div><strong>1 sesi</strong><span>Tidak dapat dilanjutkan setelah selesai</span></div></div><div class="panel" style="margin-top:17px"><b>Petunjuk pengerjaan</b><p class="muted">1. Baca soal dengan cermat.<br>2. Pilih jawaban paling tepat.<br>3. Gunakan navigasi nomor soal.<br>4. Sesi berakhir saat menekan Selesai atau waktu habis.<br>5. Penilaian resmi memerlukan backend yang terhubung.</p></div>`}function report(){if(user.role!=="guru")return `<p class="muted">Halaman hanya dapat diakses guru.</p>`;return `<div class="pagehead"><div><p class="eyebrow">MONITORING</p><h1>Laporan Nilai</h1><p>Ringkasan hasil pratinjau, belum berasal dari database.</p></div></div><div class="stats"><div class="stat"><span>Jumlah percobaan</span><strong>${history.length}</strong></div><div class="stat"><span>Nilai rata-rata</span><strong>${history.length?Math.round(history.reduce((s,x)=>s+x.nilai,0)/history.length):"—"}</strong></div><div class="stat"><span>Nilai tertinggi</span><strong>${history.length?Math.max(...history.map(x=>x.nilai)):"—"}</strong></div><div class="stat"><span>Sumber data</span><strong style="font-size:16px">Pratinjau</strong></div></div><div class="tablewrap"><table><thead><tr><th>NO</th><th>NAMA</th><th>JENIS TES</th><th>SUBJEK</th><th>JUMLAH SOAL</th><th>NILAI</th><th>TANGGAL</th></tr></thead><tbody>${history.length?history.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.nama)}</td><td>${x.type==="simulasi"?"Simulasi":"Latihan"}</td><td>${esc(x.subject||"Semua subjek")}</td><td>${x.jumlah}</td><td><span class="score">${x.nilai}</span></td><td>${esc(x.tanggal)}</td></tr>`).join(""):`<tr><td colspan="7">Belum ada data.</td></tr>`}</tbody></table></div>`}function importStudentsPage(){if(user.role!=="guru")return `<p class="muted">Halaman hanya dapat diakses guru.</p>`;return `<div class="pagehead"><div><p class="eyebrow">ADMINISTRASI AKUN</p><h1>Impor Siswa</h1><p>Unggah CSV daftar siswa. Password awal diproses backend menjadi hash sebelum disimpan.</p></div></div><div class="panel"><form id="importstudentsform"><label>File CSV siswa</label><input id="studentscsv" type="file" accept=".csv,text/csv" required><p class="muted">Kolom yang dikenali: KELAS, NIS, NAMA LENGKAP, USER, PASSWORD. File dengan pemisah titik koma (;) maupun koma dapat dibaca.</p><div class="notice"><b>Perlindungan data</b><p>File hanya dikirim ke Apps Script saat kamu menekan tombol impor. Jangan unggah CSV berisi password ke GitHub.</p></div><button class="primary" id="importstudentsbutton" type="submit">Impor akun siswa</button></form><div id="importstudentsresult" class="muted" style="margin-top:16px"></div></div>`}
-function parseCSV(text){text=text.replace(/^\\uFEFF/,"");const first=(text.split(/\\r?\\n/,1)[0]||"");const delimiter=(first.match(/;/g)||[]).length>(first.match(/,/g)||[]).length?";":",";const rows=[];let row=[],field="",quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===delimiter&&!quoted){row.push(field);field=""}else if((c==="\\n"||c==="\\r")&&!quoted){if(c==="\\r"&&text[i+1]==="\\n")i++;row.push(field);if(row.some(v=>v.trim()))rows.push(row);row=[];field=""}else field+=c}row.push(field);if(row.some(v=>v.trim()))rows.push(row);if(rows.length<2)throw Error("CSV tidak memiliki baris data.");const headers=rows.shift().map(h=>h.trim().toUpperCase());const index=Object.fromEntries(headers.map((h,i)=>[h,i]));const get=(r,...keys)=>{for(const k of keys)if(index[k]!==undefined)return String(r[index[k]]??"").trim();return""};return rows.map(r=>({nis:get(r,"NIS"),nama:get(r,"NAMA LENGKAP","NAMA"),kelas:get(r,"KELAS"),username:get(r,"USER","USERNAME"),password:get(r,"PASSWORD")})).filter(r=>r.nis&&r.username&&r.password)}
+
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, "");
+
+  const first = text.split(/\r?\n/, 1)[0] || "";
+  const delimiter =
+    (first.match(/;/g) || []).length >
+    (first.match(/,/g) || []).length
+      ? ";"
+      : ",";
+
+  const rows = [];
+  let row = [];
+  let field = "";
+  let quoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+
+    if (c === '"') {
+      if (quoted && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (c === delimiter && !quoted) {
+      row.push(field);
+      field = "";
+    } else if ((c === "\n" || c === "\r") && !quoted) {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+
+      row.push(field);
+      if (row.some(v => v.trim())) rows.push(row);
+
+      row = [];
+      field = "";
+    } else {
+      field += c;
+    }
+  }
+
+  row.push(field);
+  if (row.some(v => v.trim())) rows.push(row);
+
+  if (rows.length < 2) {
+    throw Error("CSV tidak memiliki baris data.");
+  }
+
+  const headers = rows.shift().map(h => h.trim().toUpperCase());
+  const index = Object.fromEntries(
+    headers.map((h, i) => [h, i])
+  );
+
+  const get = (r, ...keys) => {
+    for (const k of keys) {
+      if (index[k] !== undefined) {
+        return String(r[index[k]] ?? "").trim();
+      }
+    }
+    return "";
+  };
+
+  return rows
+    .map(r => ({
+      nis: get(r, "NIS"),
+      nama: get(r, "NAMA LENGKAP", "NAMA"),
+      kelas: get(r, "KELAS"),
+      username: get(r, "USER", "USERNAME"),
+      password: get(r, "PASSWORD")
+    }))
+    .filter(r => r.nis && r.username && r.password);
+}
+
 function start(type,subject){pending=()=>begin(type,subject);$("#ctitle").textContent=type==="simulasi"?"Mulai Simulasi TKA?":"Mulai latihan?";$("#ctext").textContent=type==="simulasi"?"25 soal, durasi 50 menit.":"20 soal, durasi 30 menit.";$("#accept").textContent="Mulai sekarang";$("#confirm").classList.remove("hidden")}function shuffle(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x}
 function bankQuestions(){return (window.TKA_QUESTION_BANK||[]).map(q=>{const opts=(q.opsi||[]).map((v,i)=>({v,i})).filter(x=>x.v.trim());const key=String(q.kunci_opsi||q.kunci||"").trim().toUpperCase();let answer=-1;if(/^[A-E]$/.test(key))answer=key.charCodeAt(0)-65;else if(/^[1-5]$/.test(key))answer=Number(key)-1;return {...q,q:q.stimulus||"Soal",o:opts.map(x=>x.v),a:answer,source:q.asal_data||""}})}
 function begin(type,subject){if(cfg.apiUrl){api(type==="simulasi"?"startSimulation":"startPractice",{subjek:subject}).then(d=>{attempt={...d,type,subject,questions:d.questions.map(q=>({...q,q:q.q||q.stimulus_isi_soal||q.stimulus,o:q.o||[q.opsi_a,q.opsi_b,q.opsi_c,q.opsi_d,q.opsi_e].filter(Boolean)})),index:0,answers:{},endAt:new Date(d.batas_waktu).getTime(),demo:false};go("quiz");startTimer()}).catch(e=>toast(e.message));return}
