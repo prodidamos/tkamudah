@@ -6,7 +6,7 @@ Frontend statis HTML/CSS/JavaScript untuk GitHub Pages. Semua soal, penilaian, r
 - `index.html`, `styles.css`, `app.js` — antarmuka.
 - `config.js` — `apiUrl` Web App Apps Script dan `demoMode: false`.
 - `question-bank.js` — hanya indeks materi (subjek, submateri, jumlah **soal aktif**) untuk dropdown dan halaman Latihan. Dibuat dari `soal kumpulan tka tjkt 11.csv`.
-- `materi/` — halaman bacaan Materi 1 (Profesi dan Dunia Kerja TJKT) dan Materi 2 (K3LH dan Budaya Kerja), dimuat oleh menu **Materi**. Lihat `materi/PANDUAN.md`.
+- `materi/` — halaman bacaan Materi 1–10 (`fragment.html`, `materi.css`, `materi.js`), dimuat oleh menu **Materi**. Lihat `materi/PANDUAN.md`.
 
 ## Berkas privat (JANGAN di-commit ke repository publik)
 - `Code.gs` — backend; berisi ID spreadsheet.

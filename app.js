@@ -8,7 +8,18 @@ const subjects = [
   "Keamanan Siber dan Jaringan", "Media Optik", "Media Seluler", "Media Satelit", "Media Tembaga",
   "Profesi dan Dunia Kerja TJKT", "Sistem Operasi, Server, dan Cloud"
 ];
-const icons = ["⌁", "⌘", "✚", "◇", "◎", "◉", "◌", "⌁", "♙", "▣"];
+const icons = [
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 9.8a5 5 0 0 1 7 0M5.5 6.8a9 9 0 0 1 13 0"/><circle cx="12" cy="13" r="1.4"/><rect x="8.5" y="16.5" width="7" height="4.5" rx="1.2"/></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.3"/><circle cx="5" cy="19" r="2.3"/><circle cx="19" cy="19" r="2.3"/><path d="M12 7.3v4.2M12 11.5 6.2 17M12 11.5l5.8 5.5"/></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 16a7.5 7.5 0 0 1 15 0"/><path d="M3 16h18v2.8H3z"/><path d="M12 8.5V13M9.2 9.2 9.6 13M14.8 9.2 14.4 13"/></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.8 6v5.4c0 4.4 3.1 7.9 7.2 9.6 4.1-1.7 7.2-5.2 7.2-9.600V6z"/><rect x="9.2" y="10.8" width="5.6" height="4.4" rx="1"/><path d="M10.5 10.8V9.6a1.5 1.5 0 0 1 3 0v1.2"/></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11.5V21M8.8 21h6.4M9.2 21 12 12l2.8 9"/><circle cx="12" cy="9" r="1.5"/><path d="M8.3 6a5.5 5.5 0 0 0 0 6M15.7 6a5.5 5.5 0 0 1 0 6M5.6 4a9.5 9.5 0 0 0 0 10M18.4 4a9.5 9.5 0 0 1 0 10"/></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(-45 12 12)"><rect x="9.8" y="8.5" width="4.4" height="7" rx="1"/><rect x="2.5" y="9" width="5.5" height="6" rx=".8"/><rect x="16" y="9" width="5.5" height="6" rx=".8"/><path d="M8 12h1.8M14.200 12H16M12 15.5v2.5"/></g><path d="M16.5 19.5a4 4 0 0 0 3-3" /></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="8" width="15" height="11.5" rx="1.5"/><path d="M9 8V4.500h6V8M8.5 19.500V15.500M11 19.500V15.500M13 19.500V15.500M15.5 19.500V15.5"/></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5 20.500a7 7 0 0 1 14 0"/></svg>`,
+  `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17.500a4 4 0 0 1-.5-7.9 5.5 5.5 0 0 1 10.7 1.300A3.3 3.3 0 0 1 17 17.500z"/><path d="M9.5 20.500h5M12 17.500v3"/></svg>`
+];   // satu logo (SVG) per materi, urutannya sama dengan daftar subjects
 const names = {
   home: "Beranda", subjects: "Soal per Subjek", materi: "Materi", simulation: "Simulasi TKA",
   report: "Laporan Nilai", import: "Impor Siswa", quiz: "Sesi Latihan", result: "Hasil Latihan"
@@ -128,29 +139,21 @@ function home() {
 function topicsOf(subject) { return materi.filter(m => m.subjek === subject); }
 
 function subjectPage() {
-  const cards = subjects.map((s, i) => {
-    const tp = topicsOf(s), total = tp.reduce((a, m) => a + m.jumlah, 0);
-    const opts = [`<option value="">Semua submateri (${total} soal)</option>`]
-      .concat(tp.map(m => m.jumlah >= PRACTICE.minSub
-        ? `<option value="${esc(m.submateri)}">${esc(m.submateri)} (${m.jumlah})</option>`
-        : `<option value="${esc(m.submateri)}" disabled>${esc(m.submateri)} (${m.jumlah} soal, minimal ${PRACTICE.minSub})</option>`)).join("");
-    return `<article class="subjectcard"><div class="subjecttop"><span class="symbol">${icons[i]}</span><span class="pill">SUBJEK ${String(i + 1).padStart(2, "0")}</span></div><h3>${esc(s)}</h3><p>Latih pemahaman konsep dan kompetensi pada bidang ini.</p><select class="subselect" data-sel="${i}" aria-label="Pilih submateri">${opts}</select><button class="secondary" data-subject="${esc(s)}" data-idx="${i}">Pilih subjek →</button></article>`;
-  }).join("");
-  return `<div class="pagehead"><div><p class="eyebrow">BANK LATIHAN</p><h1>Soal per Subjek</h1><p>Pilih bidang dan, jika perlu, submateri. Sesi berisi hingga ${PRACTICE.count} soal selama ${PRACTICE.minutes} menit.</p></div><span class="chip">◷ ${PRACTICE.count} soal / ${PRACTICE.minutes} menit</span></div><div class="subjectgrid">${cards}</div>`;
+  const cards = subjects.map((s, i) =>
+    `<article class="subjectcard simple"><span class="symbol big">${icons[i]}</span><h3>${esc(s)}</h3><button class="primary" data-subject="${esc(s)}" data-idx="${i}">Mulai →</button></article>`
+  ).join("");
+  return `<div class="pagehead"><div><h1>Soal per Subjek</h1></div></div><div class="subjectgrid">${cards}</div>`;
 }
 
 /* ---------- Materi (bacaan) ----------
-   Isi halaman ada di materi/fragment.html + materi/js/*.js. Berkas dimuat saat menu Materi pertama kali dibuka. */
+   Isi halaman ada di materi/fragment.html, materi/materi.css, dan materi/materi.js. Berkas dimuat saat menu Materi pertama kali dibuka. */
 const MATERI_BASE = "materi/";
 let materiAssets = null, materiHtml = null;
 function loadMateriAssets() {
   if (materiAssets) return materiAssets;
   const css = f => new Promise((ok, no) => { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = MATERI_BASE + f; l.onload = ok; l.onerror = () => no(Error("Gagal memuat " + f)); document.head.appendChild(l); });
   const js = f => new Promise((ok, no) => { const e = document.createElement("script"); e.src = MATERI_BASE + f; e.onload = ok; e.onerror = () => no(Error("Gagal memuat " + f)); document.head.appendChild(e); });
-  const chain = (list, fn) => list.reduce((p, f) => p.then(() => fn(f)), Promise.resolve());   // skrip dimuat berurutan
-  materiAssets = Promise.all([css("css/materi-profesi.css"), css("css/materi-k3lh.css")])
-    .then(() => css("css/materi-embed.css"))
-    .then(() => chain(["js/profesi-data.js", "js/materi-profesi.js", "js/k3lh-data.js", "js/materi-k3lh.js", "js/materi-switch.js"], js))
+  materiAssets = Promise.all([css("materi.css"), js("materi.js")])
     .then(() => fetch(MATERI_BASE + "fragment.html").then(r => { if (!r.ok) throw Error("Gagal memuat isi materi (HTTP " + r.status + ")."); return r.text(); }))
     .then(t => { materiHtml = t; });
   materiAssets.catch(() => { materiAssets = null; });   // boleh dicoba lagi bila gagal
@@ -328,12 +331,13 @@ function render() {
   if (page === "materi") mountMateri();
 
   const cpf = $("#changepasswordform");
+  if (cpf) cpf.querySelectorAll("input").forEach(i => i.oninput = () => $("#passworderr").classList.add("hidden"));
   if (cpf) cpf.onsubmit = e => {
     e.preventDefault();
     const a = $("#newpassword").value, b = $("#confirmpassword").value, err = $("#passworderr");
     const fail = m => { err.textContent = m; err.classList.remove("hidden"); };
     err.classList.add("hidden");
-    if (a.length < 8) return fail("Password baru minimal 8 karakter.");
+    if (a.length < 8) return fail("[browser] Password baru minimal 8 karakter (terbaca " + a.length + ").");
     if (a !== b) return fail("Konfirmasi password belum cocok.");
     const btn = cpf.querySelector("button[type=submit]"); btn.disabled = true;
     api("changePassword", { new_password: a, confirm_password: b })
