@@ -1,0 +1,21 @@
+/* =====================================================================
+   Penyesuaian saat Materi dipasang di dalam aplikasi Latihan TKA.
+   styles.css aplikasi memuat aturan umum (header, th, td, body) yang
+   akan mengubah tampilan materi; berkas ini menimpanya khusus di dalam .mp.
+   ===================================================================== */
+.mp {
+  --mp-font: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mp-top: 68px;            /* tinggi header aplikasi yang menempel di atas */
+  font-size: 16px;
+  margin: -30px -34px;       /* batalkan padding #content agar pita materi selebar area kerja */
+  width: auto;
+}
+.mp h1, .mp h2, .mp h3 { font-family: "Plus Jakarta Sans", "DM Sans", system-ui, sans-serif; }
+.mp-table th, .mp-table td { font-size: inherit; border-bottom: 0; }
+.mp-table tbody th { background: transparent; color: var(--mp-ink); }
+.mp-table thead th { font-size: .78rem; }
+.mp-table tbody tr:nth-child(even) th { background: transparent; }
+.mp button { font: inherit; }
+@media (max-width: 750px) {
+  .mp { --mp-top: 60px; margin: -21px -15px; }
+}
