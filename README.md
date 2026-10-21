@@ -50,3 +50,11 @@ Kontrak action frontend saat ini: `login`, `logout`, `startPractice`, `startSimu
 
 ## Bank soal terbaru
 Frontend ini memuat `question-bank.js` yang dibangun dari `soal kumpulan tka tjkt 10.csv` (678 baris). Untuk memperbarui bank soal berikutnya, regenerasi file `question-bank.js` dari CSV baru dengan mempertahankan nama file ini, lalu commit ke repository `tkamudah`.
+
+
+## Impor siswa dari dashboard guru
+- Menu `Impor Siswa` tampil untuk akun dengan role `guru`.
+- Unggah CSV dengan kolom `KELAS`, `NIS`, `NAMA LENGKAP`, `USER`, `PASSWORD` (pemisah koma atau titik koma).
+- Frontend mengirim data ke action `importStudents`; backend harus sudah terhubung di `config.js` dan menjalankan `importStudents_`.
+- Backend hanya menambahkan username baru, meng-hash password, dan melewati username yang sudah ada.
+- Jangan unggah CSV yang berisi password ke repositori publik.

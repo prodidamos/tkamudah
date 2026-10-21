@@ -6,7 +6,3 @@
 
 /* Materi page additions */
 .notice{background:#EDF4FB;border:1px solid #DCE9F7;border-radius:12px;padding:14px 17px;margin-bottom:18px}.notice b{color:var(--navy)}.notice p{font-size:11px;color:#667B94;line-height:1.6;margin:6px 0 0}.materi-card{min-height:unset}.topiclist{padding-left:18px;margin:0 0 16px;color:#52647b;font-size:11px;line-height:1.65}.topiclist li{margin:4px 0}.materi-card button{margin-top:auto}
-
-/* Tombol menyelesaikan sesi dibuat netral agar fokus utama tetap pada navigasi soal. */
-#finishside{background:#111111!important;color:#ffffff!important;border:1px solid #111111!important;box-shadow:none!important}
-#finishside:hover{background:#292929!important;border-color:#292929!important}
