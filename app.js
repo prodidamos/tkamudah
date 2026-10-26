@@ -238,11 +238,26 @@ function start(type, subject, sub) {
   $("#confirm").classList.remove("hidden");
 }
 
+function deriveType(q) {
+  // 1. Server sudah mengirim tipe yang valid — gunakan langsung.
+  if (q.tipe === "multi" || q.tipe === "kategori" || q.tipe === "pg") return q.tipe;
+  // 2. Fallback: deteksi dari label bentuk_soal yang dikirim server.
+  const bentuk = String(q.bentuk_soal || "").toLowerCase();
+  if (/kategori|benar\s*\/\s*salah/.test(bentuk)) return "kategori";
+  if (/multi|mcma/.test(bentuk)) return "multi";
+  if (/^pg$|^pilihan ganda$/.test(bentuk.trim())) return "pg";
+  if (/^pgk/.test(bentuk)) return "multi";
+  // 3. Fallback terakhir: cek kata kunci di teks soal.
+  const stem = String(q.stimulus_isi_soal || "").toLowerCase();
+  if (/benar\s+(atau|dan)\s+salah/.test(stem)) return "kategori";
+  if (/jawaban\s+(benar\s+)?lebih\s+dari\s+satu|lebih\s+dari\s+satu\s+jawaban/.test(stem)) return "multi";
+  return "pg";
+}
 function normalizeQuestion(q) {
   const letters = ["A", "B", "C", "D", "E"];
   const blank = t => { t = String(t == null ? "" : t).trim(); return !t || /^[—–-]$/.test(t); };   // "—" = opsi kosong
   const opts = letters.map(l => ({ l, t: q["opsi_" + l.toLowerCase()] })).filter(o => !blank(o.t));
-  return { id: q.question_id, tipe: q.tipe || "pg", text: q.stimulus_isi_soal || "Soal", opts, sub: q.sub_subjek || "", pus: /pusmendik/i.test(q.asal_data || "") };
+  return { id: q.question_id, tipe: deriveType(q), text: q.stimulus_isi_soal || "Soal", opts, sub: q.sub_subjek || "", pus: /pusmendik/i.test(q.asal_data || "") };
 }
 function buildAttempt(d, answers = {}, index = 0) {
   const isSim = d.jenis === "simulasi";
