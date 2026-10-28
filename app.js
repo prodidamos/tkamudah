@@ -43,8 +43,108 @@ function toast(s) {
 }
 function fmtDate(v) { const d = new Date(v); return isNaN(d) ? String(v || "") : d.toLocaleDateString("id-ID"); }
 function fmt(n) { return String(Math.floor(n / 60)).padStart(2, "0") + ":" + String(n % 60).padStart(2, "0"); }
-function store(key, val) { try { val == null ? sessionStorage.removeItem(key) : sessionStorage.setItem(key, JSON.stringify(val)); } catch {} }
-function load(key) { try { return JSON.parse(sessionStorage.getItem(key) || "null"); } catch { return null; } }
+function getStorage() {
+  try {
+    const k = "__tka_test__";
+    localStorage.setItem(k, "1");
+    localStorage.removeItem(k);
+    return localStorage;
+  } catch {
+    return sessionStorage;
+  }
+}
+const storage = getStorage();
+function store(key, val) {
+  try {
+    if (val == null) {
+      storage.removeItem(key);
+      try { sessionStorage.removeItem(key); } catch {}
+    } else {
+      const s = JSON.stringify(val);
+      storage.setItem(key, s);
+      try { sessionStorage.setItem(key, s); } catch {}
+    }
+  } catch {}
+}
+function load(key) {
+  try {
+    const v = storage.getItem(key);
+    if (v != null) return JSON.parse(v);
+    return JSON.parse(sessionStorage.getItem(key) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function historyKey() {
+  const id = user ? (user.nis || user.username || "siswa") : "siswa";
+  return "tka_hist_" + String(id).toLowerCase();
+}
+function saveHistory() {
+  if (user && user.role === "siswa") {
+    store(historyKey(), history);
+  }
+}
+function loadHistory() {
+  if (user && user.role === "siswa") {
+    const saved = load(historyKey());
+    if (Array.isArray(saved) && saved.length) {
+      history = saved;
+    }
+  }
+}
+function mergeHistory(serverList) {
+  if (!Array.isArray(serverList)) return;
+  const map = new Map();
+  serverList.forEach(x => {
+    if (!x) return;
+    const k = String(x.attempt_id || (x.subjek + "_" + x.tanggal));
+    map.set(k, {
+      attempt_id: x.attempt_id || "",
+      jenis: x.jenis || "latihan",
+      subjek: x.subjek || "",
+      sub_subjek: x.sub_subjek || "",
+      jumlah_benar: x.jumlah_benar != null ? Number(x.jumlah_benar) : 0,
+      jumlah_soal: x.jumlah_soal != null ? Number(x.jumlah_soal) : 0,
+      nilai: x.nilai != null ? Number(x.nilai) : 0,
+      tanggal: x.tanggal || new Date().toISOString()
+    });
+  });
+  (history || []).forEach(x => {
+    if (!x) return;
+    const k = String(x.attempt_id || (x.subjek + "_" + x.tanggal));
+    if (!map.has(k)) {
+      map.set(k, x);
+    }
+  });
+  history = Array.from(map.values()).sort((a, b) => new Date(b.tanggal || 0).getTime() - new Date(a.tanggal || 0).getTime());
+  saveHistory();
+  if (page === "home" || page === "result") render();
+}
+
+let syncingHistory = false;
+function syncHistory() {
+  if (!user || user.role !== "siswa" || !user.token || !cfg.apiUrl || syncingHistory) return Promise.resolve(history);
+  syncingHistory = true;
+  return api("getHistory")
+    .then(d => {
+      if (Array.isArray(d?.history)) mergeHistory(d.history);
+      return history;
+    })
+    .catch(() => {
+      return api("getDashboard")
+        .then(d => {
+          if (Array.isArray(d?.history)) mergeHistory(d.history);
+          if (d?.leaderboard && Array.isArray(d.leaderboard.rows)) {
+            board = d.leaderboard;
+            if (page === "home") render();
+          }
+          return history;
+        })
+        .catch(() => history);
+    })
+    .finally(() => { syncingHistory = false; });
+}
 const avgOf = rows => rows.length ? Math.round(rows.reduce((s, x) => s + Number(x.nilai || 0), 0) / rows.length) : "—";
 
 /* ---------- API ---------- */
@@ -91,15 +191,19 @@ function go(p) {
   document.querySelectorAll(".nav").forEach(b => b.classList.toggle("active", b.dataset.page === p));
   $("#sidebar").classList.remove("open");
   if (p === "report") loadReport();
+  if (p === "home" && user && user.role === "siswa") syncHistory();
   render();
 }
 
 function login(u) {
   const { history: h, leaderboard: lb, ...rest } = u;   // riwayat dan papan nilai ikut dalam respons login; tidak perlu permintaan tambahan
-  history = Array.isArray(h) ? h : [];
-  board = lb && Array.isArray(lb.rows) ? lb : null;
   user = { ...rest, wajib_ganti_password: false };
   store("tka_user", user);
+  loadHistory();
+  if (Array.isArray(h) && h.length) {
+    mergeHistory(h);
+  }
+  board = lb && Array.isArray(lb.rows) ? lb : board;
   $("#login").classList.add("hidden");
   $("#username").textContent = user.nama;
   $("#role").textContent = user.role === "guru" ? "Guru / Administrator" : "Peserta latihan";
@@ -107,6 +211,9 @@ function login(u) {
   document.querySelectorAll(".teacher").forEach(x => x.classList.toggle("hidden", user.role !== "guru"));
   go("home");
   restoreAttempt();
+  if (user.role === "siswa") {
+    syncHistory();
+  }
 }
 
 /* ---------- halaman ---------- */
@@ -321,9 +428,23 @@ function finish(expired = false) {
   api("finishAttempt", { attempt_id: a.id, answers: a.answers })
     .then(d => {
       result = { nilai: d.nilai, benar: d.jumlah_benar, total: d.jumlah_soal, expired, subject: a.subject, type: a.type };
-      history.unshift({ jenis: d.jenis, subjek: d.subjek, sub_subjek: d.sub_subjek, jumlah_benar: d.jumlah_benar, jumlah_soal: d.jumlah_soal, nilai: d.nilai, tanggal: d.tanggal });
+      const completedAttempt = {
+        attempt_id: d.attempt_id || a.id,
+        jenis: d.jenis || a.type || "latihan",
+        subjek: d.subjek || a.subject || (a.type === "simulasi" ? "Simulasi TKA" : ""),
+        sub_subjek: d.sub_subjek || a.sub || "",
+        jumlah_benar: d.jumlah_benar != null ? Number(d.jumlah_benar) : (result.benar || 0),
+        jumlah_soal: d.jumlah_soal != null ? Number(d.jumlah_soal) : a.questions.length,
+        nilai: d.nilai != null ? Number(d.nilai) : 0,
+        tanggal: d.tanggal || new Date().toISOString()
+      };
+      const existing = (history || []).filter(x => x.attempt_id !== completedAttempt.attempt_id);
+      history = [completedAttempt, ...existing];
+      saveHistory();
+
       attempt = null; store("tka_attempt", null);
       go("result");
+      setTimeout(syncHistory, 500);
     })
     .catch(e => {
       toast("Pengiriman gagal: " + e.message);
@@ -335,7 +456,7 @@ function finish(expired = false) {
 
 function resultPage() {
   const r = result || { nilai: "—", benar: "—", total: "—" };
-  return `<div class="panel result"><div class="circle">${esc(r.nilai)}</div><p class="eyebrow">SESI SELESAI</p><h2>${r.expired ? "Waktu pengerjaan habis" : "Latihan selesai!"}</h2><p class="muted">Jawaban benar ${esc(r.benar)} dari ${esc(r.total)} soal pada ${esc(r.subject || "Simulasi TKA")}.</p><p class="muted">Nilai sudah tersimpan di database.</p><div class="actions"><button class="primary" data-go="subjects">Latihan subjek lain</button><button class="secondary" data-go="home">Kembali ke beranda</button></div></div>`;
+  return `<div class="panel result"><div class="circle">${esc(r.nilai)}</div><p class="eyebrow">SESI SELESAI</p><h2>${r.expired ? "Waktu pengerjaan habis" : "Latihan selesai!"}</h2><p class="muted">Jawaban benar ${esc(r.benar)} dari ${esc(r.total)} soal pada ${esc(r.subject || "Simulasi TKA")}.</p><p class="muted">Nilai sudah tersimpan di database.</p><p class="muted" style="margin-top:6px">Total latihan yang sudah dikerjakan: <b>${history.length}</b> sesi</p><div class="actions"><button class="primary" data-go="subjects">Latihan subjek lain</button><button class="secondary" data-go="home">Kembali ke beranda</button></div></div>`;
 }
 
 /* ---------- render & event ---------- */
@@ -431,6 +552,16 @@ $("#loginform").onsubmit = e => {
 const saved = load("tka_user");
 if (saved && saved.token && cfg.apiUrl) {
   user = saved;
-  api("getDashboard").then(d => login({ ...saved, wajib_ganti_password: false, history: d.history, leaderboard: d.leaderboard })).catch(() => { clearSession(); showLogin(); });
+  loadHistory();
+  login({ ...saved, wajib_ganti_password: false, history: history });
+  api("getDashboard")
+    .then(d => {
+      if (Array.isArray(d?.history)) mergeHistory(d.history);
+      if (d?.leaderboard && Array.isArray(d.leaderboard.rows)) {
+        board = d.leaderboard;
+        if (page === "home") render();
+      }
+    })
+    .catch(() => {});
 }
 })();
