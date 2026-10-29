@@ -81,12 +81,12 @@ function historyKey() {
   return "tka_hist_" + String(id).toLowerCase();
 }
 function saveHistory() {
-  if (user && user.role === "siswa") {
+  if (user) {
     store(historyKey(), history);
   }
 }
 function loadHistory() {
-  if (user && user.role === "siswa") {
+  if (user) {
     const saved = load(historyKey());
     if (Array.isArray(saved) && saved.length) {
       history = saved;
@@ -124,7 +124,7 @@ function mergeHistory(serverList) {
 
 let syncingHistory = false;
 function syncHistory() {
-  if (!user || user.role !== "siswa" || !user.token || !cfg.apiUrl || syncingHistory) return Promise.resolve(history);
+  if (!user || !user.token || !cfg.apiUrl || syncingHistory) return Promise.resolve(history);
   syncingHistory = true;
   return api("getHistory")
     .then(d => {
@@ -191,7 +191,7 @@ function go(p) {
   document.querySelectorAll(".nav").forEach(b => b.classList.toggle("active", b.dataset.page === p));
   $("#sidebar").classList.remove("open");
   if (p === "report") loadReport();
-  if (p === "home" && user && user.role === "siswa") syncHistory();
+  if (p === "home" && user) syncHistory();
   render();
 }
 
@@ -205,15 +205,16 @@ function login(u) {
   }
   board = lb && Array.isArray(lb.rows) ? lb : board;
   $("#login").classList.add("hidden");
-  $("#username").textContent = user.nama;
-  $("#role").textContent = user.role === "guru" ? "Guru / Administrator" : "Peserta latihan";
-  $("#avatar").textContent = (user.nama || "S")[0].toUpperCase();
+  const displayName = user.nama || user.username || (user.role === "guru" ? "Guru" : "Siswa");
+  $("#username").textContent = displayName;
+  const roleText = user.role === "guru" ? "Guru / Administrator" : "Peserta latihan";
+  const userTag = user.username && user.nama && user.username !== user.nama ? ` • @${user.username}` : "";
+  $("#role").textContent = roleText + userTag;
+  $("#avatar").textContent = (displayName || "S")[0].toUpperCase();
   document.querySelectorAll(".teacher").forEach(x => x.classList.toggle("hidden", user.role !== "guru"));
   go("home");
   restoreAttempt();
-  if (user.role === "siswa") {
-    syncHistory();
-  }
+  syncHistory();
 }
 
 /* ---------- halaman ---------- */
@@ -237,8 +238,9 @@ function home() {
   }).join("");
   const acts = history.length ? history.slice(0, 4).map(x => `<div class="activity"><span class="symbol">✓</span><div><b>${esc(x.jenis === "simulasi" ? "Simulasi TKA" : x.subjek)}</b><small>${esc(fmtDate(x.tanggal))} • ${esc(x.jumlah_soal)} soal</small></div><strong>${esc(x.nilai)}</strong></div>`).join("")
     : `<p class="muted">Belum ada aktivitas. Mulai latihan untuk melihat progresmu di sini.</p>`;
-  return `${pw}<div class="welcome"><div><p class="eyebrow">RUANG LATIHAN TKA</p><h1>Halo, ${esc(user.nama)}! 👋</h1><p>Persiapkan diri menghadapi Tes Kompetensi Akademik dengan berlatih secara terarah. Pilih subjek, kerjakan soal, dan evaluasi hasil belajarmu.</p>${isGuru ? `<button data-go="report">Lihat laporan nilai　→</button>` : `<button data-go="subjects">Mulai latihan　→</button>`}</div><div class="welcomeart">▤</div></div>
-<div class="stats"><div class="stat"><span>Total latihan</span><strong>${isGuru ? "—" : history.length}</strong><small>Tersimpan di server</small></div><div class="stat"><span>Nilai rata-rata</span><strong>${isGuru ? "—" : avgOf(history)}</strong><small>Seluruh sesi</small></div><div class="stat"><span>Subjek tersedia</span><strong>${subjects.length}</strong><small>Bidang kompetensi TJKT</small></div><div class="stat"><span>Durasi simulasi</span><strong>${SIM.minutes} <small>menit</small></strong><small>${SIM.count} soal</small></div></div>
+  const displayName = user.nama || user.username || (isGuru ? "Guru" : "Siswa");
+  return `${pw}<div class="welcome"><div><p class="eyebrow">RUANG LATIHAN TKA</p><h1>Halo, ${esc(displayName)}! 👋</h1><p>Persiapkan diri menghadapi Tes Kompetensi Akademik dengan berlatih secara terarah. Pilih subjek, kerjakan soal, dan evaluasi hasil belajarmu.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button data-go="subjects">Mulai latihan　→</button>${isGuru ? `<button class="secondary" data-go="report">Lihat laporan nilai　→</button>` : ""}</div></div><div class="welcomeart">▤</div></div>
+<div class="stats"><div class="stat"><span>Total latihan</span><strong>${history.length}</strong><small>Tersimpan di server</small></div><div class="stat"><span>Nilai rata-rata</span><strong>${avgOf(history)}</strong><small>Seluruh sesi</small></div><div class="stat"><span>Subjek tersedia</span><strong>${subjects.length}</strong><small>Bidang kompetensi TJKT</small></div><div class="stat"><span>Durasi simulasi</span><strong>${SIM.minutes} <small>menit</small></strong><small>${SIM.count} soal</small></div></div>
 <div class="sectionhead"><h2>Jelajahi subjek</h2><button class="link" data-go="subjects">Lihat semua →</button></div>
 <div class="dashgrid"><div class="panel"><div class="tiles">${tiles}</div></div><div class="panel"><div class="sectionhead"><h2>Aktivitas terbaru</h2></div>${acts}</div></div>${boardPanel()}`;
 }
@@ -288,10 +290,14 @@ function reportPage() {
   const head = `<div class="pagehead"><div><p class="eyebrow">MONITORING</p><h1>Laporan Nilai</h1><p>Hasil percobaan siswa dari database.</p></div></div>${filters}`;
   if (!r) return head + `<p class="muted">Memuat laporan…</p>`;
   const kelasRows = (r.per_kelas || []).map(k => `<tr><td>${esc(k.kelas)}</td><td>${k.jumlah_percobaan}</td><td>${k.rata_rata}</td><td>${k.nilai_tertinggi}</td></tr>`).join("");
-  const rows = (r.nilai_terbaru || []).map((x, i) => `<tr><td>${i + 1}</td><td>${esc(x.nama)}</td><td>${esc(x.kelas)}</td><td>${x.jenis === "simulasi" ? "Simulasi" : "Latihan"}</td><td>${esc(x.jenis === "simulasi" ? "Semua subjek" : x.subjek)}</td><td>${esc(x.jumlah_benar)}/${esc(x.jumlah_soal)}</td><td><span class="score">${esc(x.nilai)}</span></td><td>${esc(fmtDate(x.tanggal))}</td></tr>`).join("");
+  const rows = (r.nilai_terbaru || []).map((x, i) => {
+    const userLabel = x.nama || x.username || (x.nis ? 'NIS ' + x.nis : '—');
+    const userSub = (x.username || x.nis) && (x.username || x.nis) !== x.nama ? (x.username ? `@${x.username}` : `NIS: ${x.nis}`) : '';
+    return `<tr><td>${i + 1}</td><td><b>${esc(userLabel)}</b>${userSub ? `<br><small class="muted">${esc(userSub)}</small>` : ''}</td><td>${esc(x.kelas)}</td><td>${x.jenis === "simulasi" ? "Simulasi" : "Latihan"}</td><td>${esc(x.jenis === "simulasi" ? "Semua subjek" : x.subjek)}</td><td>${esc(x.jumlah_benar)}/${esc(x.jumlah_soal)}</td><td><span class="score">${esc(x.nilai)}</span></td><td>${esc(fmtDate(x.tanggal))}</td></tr>`;
+  }).join("");
   return `${head}<div class="stats"><div class="stat"><span>Jumlah percobaan</span><strong>${r.total_percobaan}</strong></div><div class="stat"><span>Nilai rata-rata</span><strong>${r.rata_rata}</strong></div><div class="stat"><span>Nilai tertinggi</span><strong>${r.nilai_tertinggi}</strong></div><div class="stat"><span>Sumber data</span><strong style="font-size:16px">Database</strong></div></div>
 <div class="sectionhead"><h2>Ringkasan per kelas</h2></div><div class="tablewrap" style="margin-bottom:20px"><table><thead><tr><th>KELAS</th><th>PERCOBAAN</th><th>RATA-RATA</th><th>TERTINGGI</th></tr></thead><tbody>${kelasRows || `<tr><td colspan="4">Belum ada data.</td></tr>`}</tbody></table></div>
-<div class="sectionhead"><h2>100 nilai terbaru</h2></div><div class="tablewrap"><table><thead><tr><th>NO</th><th>NAMA</th><th>KELAS</th><th>JENIS</th><th>SUBJEK</th><th>BENAR</th><th>NILAI</th><th>TANGGAL</th></tr></thead><tbody>${rows || `<tr><td colspan="8">Belum ada data.</td></tr>`}</tbody></table></div>`;
+<div class="sectionhead"><h2>100 nilai terbaru</h2></div><div class="tablewrap"><table><thead><tr><th>NO</th><th>NAMA / USER</th><th>KELAS</th><th>JENIS</th><th>SUBJEK</th><th>BENAR</th><th>NILAI</th><th>TANGGAL</th></tr></thead><tbody>${rows || `<tr><td colspan="8">Belum ada data.</td></tr>`}</tbody></table></div>`;
 }
 function loadReport() {
   report = null;
@@ -330,8 +336,156 @@ function parseCSV(text) {
 }
 
 /* ---------- sesi latihan ---------- */
+let bankDataPromise = null;
+function loadBankData() {
+  if (bankDataPromise) return bankDataPromise;
+  bankDataPromise = fetch("BankSoal-import.csv")
+    .then(r => { if (!r.ok) throw Error("Gagal memuat bank soal."); return r.text(); })
+    .then(t => {
+      t = t.replace(/^\uFEFF/, "");
+      const rows = []; let row = [], field = "", quoted = false;
+      for (let i = 0; i < t.length; i++) {
+        const c = t[i];
+        if (c === '"') {
+          if (quoted && t[i + 1] === '"') { field += '"'; i++; } else quoted = !quoted;
+        } else if (c === "," && !quoted) { row.push(field); field = ""; }
+        else if ((c === "\n" || c === "\r") && !quoted) {
+          if (c === "\r" && t[i + 1] === "\n") i++;
+          row.push(field); if (row.some(v => v.trim())) rows.push(row); row = []; field = "";
+        } else field += c;
+      }
+      row.push(field); if (row.some(v => v.trim())) rows.push(row);
+      const headers = rows.shift().map(h => h.trim().toLowerCase());
+      const idx = Object.fromEntries(headers.map((h, i) => [h, i]));
+      const get = (r, k) => idx[k] !== undefined ? String(r[idx[k]] ?? "").trim() : "";
+      return rows.map(r => ({
+        question_id: get(r, "question_id"),
+        nomor_soal_asli: get(r, "nomor_soal_asli"),
+        subjek: get(r, "subjek"),
+        sub_subjek: get(r, "sub_subjek"),
+        bentuk_soal: get(r, "bentuk_soal"),
+        stimulus_isi_soal: get(r, "stimulus_isi_soal"),
+        opsi_a: get(r, "opsi_a"),
+        opsi_b: get(r, "opsi_b"),
+        opsi_c: get(r, "opsi_c"),
+        opsi_d: get(r, "opsi_d"),
+        opsi_e: get(r, "opsi_e"),
+        kunci: get(r, "kunci"),
+        kunci_opsi: get(r, "kunci_opsi"),
+        aktif: get(r, "aktif"),
+        asal_data: get(r, "asal_data")
+      })).filter(q => q.question_id && String(q.aktif).toUpperCase() === "TRUE");
+    });
+  return bankDataPromise;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function checkAnswer(answer, q) {
+  const key = String(q.kunci_opsi || q.kunci || "").trim();
+  if (!key) return false;
+  const tipe = deriveType(q);
+  const up = v => String(v == null ? "" : v).trim().toUpperCase();
+  if (tipe === "pg") {
+    const m = key.toUpperCase().match(/^([A-E])(?:[.\s)]|$)/);
+    const want = m ? m[1] : key.toUpperCase();
+    return up(answer) === want;
+  }
+  if (tipe === "multi") {
+    const want = key.split(/[;,|]/).map(up).filter(Boolean).sort().join("|");
+    const got = (Array.isArray(answer) ? answer : []).map(up).filter(Boolean).sort().join("|");
+    return want !== "" && want === got;
+  }
+  if (tipe === "kategori") {
+    const want = {};
+    key.split(/[;,|]/).forEach(p => { const m = p.split("="); if (m.length === 2) want[up(m[0])] = up(m[1]); });
+    const got = {};
+    if (Array.isArray(answer)) answer.forEach(p => { const m = String(p).split("="); if (m.length === 2) got[up(m[0])] = up(m[1]); });
+    else if (answer && typeof answer === "object") Object.keys(answer).forEach(k => { got[up(k)] = up(answer[k]); });
+    const letters = Object.keys(want);
+    return letters.length > 0 && letters.every(l => got[l] === want[l]);
+  }
+  return false;
+}
+
+function startLocalAttempt(type, subject, sub) {
+  return loadBankData().then(bank => {
+    let pool = bank;
+    const isSim = type === "simulasi";
+    if (!isSim) {
+      pool = pool.filter(q => q.subjek === subject && (!sub || q.sub_subjek === sub));
+    }
+    const count = isSim ? SIM.count : PRACTICE.count;
+    let picked;
+    if (isSim) {
+      const pus = shuffle(pool.filter(q => /pusmendik/i.test(q.asal_data || "")));
+      const other = shuffle(pool.filter(q => !/pusmendik/i.test(q.asal_data || "")));
+      picked = shuffle(pus.slice(0, 4).concat(other.slice(0, count - 4)));
+    } else {
+      picked = shuffle(pool).slice(0, count);
+    }
+    if (!picked.length) throw Error("Soal untuk materi ini belum tersedia.");
+    const now = Date.now(), minutes = isSim ? SIM.minutes : PRACTICE.minutes;
+    const endAt = now + minutes * 60000;
+    const attemptId = "local_" + Math.random().toString(36).slice(2, 10);
+    const keysMap = {};
+    picked.forEach(q => { keysMap[q.question_id] = q; });
+    attempt = {
+      id: attemptId,
+      type: isSim ? "simulasi" : "latihan",
+      subject: isSim ? null : subject,
+      sub: sub || "",
+      questions: picked.map(normalizeQuestion),
+      answers: {},
+      index: 0,
+      endAt,
+      local: true,
+      keys: keysMap
+    };
+    saveAttempt();
+    go("quiz");
+    startTimer();
+    toast("Sesi latihan dimulai (mode pratinjau guru).");
+  }).catch(e => toast(e.message));
+}
+
+function finishLocalAttempt(a, expired = false) {
+  const keys = a.keys || {};
+  let correct = 0;
+  const questions = a.questions || [];
+  questions.forEach(q => {
+    const rawQ = keys[q.id];
+    if (rawQ && checkAnswer(a.answers[q.id], rawQ)) correct++;
+  });
+  const total = questions.length;
+  const score = total ? Math.round(correct / total * 100) : 0;
+  result = { nilai: score, benar: correct, total, expired, subject: a.subject, type: a.type };
+  const completedAttempt = {
+    attempt_id: a.id,
+    jenis: a.type || "latihan",
+    subjek: a.subject || (a.type === "simulasi" ? "Simulasi TKA" : ""),
+    sub_subjek: a.sub || "",
+    jumlah_benar: correct,
+    jumlah_soal: total,
+    nilai: score,
+    tanggal: new Date().toISOString()
+  };
+  const existing = (history || []).filter(x => x.attempt_id !== completedAttempt.attempt_id);
+  history = [completedAttempt, ...existing];
+  saveHistory();
+  attempt = null; store("tka_attempt", null);
+  go("result");
+}
+
 function start(type, subject, sub) {
-  if (user.role !== "siswa") { toast("Akun guru tidak mengerjakan latihan."); return; }
+  if (!user) { toast("Silakan login terlebih dahulu."); return; }
   const isSim = type === "simulasi";
   let n = isSim ? SIM.count : PRACTICE.count;
   if (!isSim && sub) {
@@ -371,17 +525,44 @@ function buildAttempt(d, answers = {}, index = 0) {
   return { id: d.attempt_id, type: isSim ? "simulasi" : "latihan", subject: isSim ? null : d.subjek, sub: d.sub_subjek || "",
     questions: (d.questions || []).map(normalizeQuestion), answers, index, endAt: new Date(d.batas_waktu).getTime() };
 }
-function saveAttempt() { if (attempt) store("tka_attempt", { id: attempt.id, answers: attempt.answers, index: attempt.index }); }
+function saveAttempt() {
+  if (attempt) {
+    store("tka_attempt", {
+      id: attempt.id,
+      answers: attempt.answers,
+      index: attempt.index,
+      local: !!attempt.local,
+      type: attempt.type,
+      subject: attempt.subject,
+      sub: attempt.sub,
+      questions: attempt.questions,
+      endAt: attempt.endAt,
+      keys: attempt.keys
+    });
+  }
+}
 
 function begin(type, subject, sub) {
   toast("Menyiapkan soal…");
   api(type === "simulasi" ? "startSimulation" : "startPractice", { subjek: subject, sub_subjek: sub || "" })
     .then(d => { attempt = buildAttempt(d); saveAttempt(); go("quiz"); startTimer(); })
-    .catch(e => toast(e.message));
+    .catch(e => {
+      if (user?.role === "guru") {
+        return startLocalAttempt(type, subject, sub);
+      }
+      toast(e.message);
+    });
 }
 function restoreAttempt() {
   const saved = load("tka_attempt");
-  if (!saved || !user || user.role !== "siswa" || user.wajib_ganti_password) return Promise.resolve(false);
+  if (!saved || !user || user.wajib_ganti_password) return Promise.resolve(false);
+  if (saved.local) {
+    attempt = saved;
+    go("quiz");
+    startTimer();
+    toast("Sesi latihan dilanjutkan.");
+    return Promise.resolve(true);
+  }
   return api("getAttempt", { attempt_id: saved.id })
     .then(d => { attempt = buildAttempt(d, saved.answers || {}, saved.index || 0); go("quiz"); startTimer(); toast("Sesi latihan dilanjutkan."); return true; })
     .catch(() => { store("tka_attempt", null); return false; });
@@ -424,6 +605,11 @@ function finish(expired = false) {
   if (!attempt || finishing) return;
   finishing = true;
   const a = attempt; clearInterval(timer);
+  if (a.local) {
+    finishing = false;
+    finishLocalAttempt(a, expired);
+    return;
+  }
   toast("Mengirim jawaban…");
   api("finishAttempt", { attempt_id: a.id, answers: a.answers })
     .then(d => {
@@ -447,6 +633,11 @@ function finish(expired = false) {
       setTimeout(syncHistory, 500);
     })
     .catch(e => {
+      if (user?.role === "guru") {
+        finishing = false;
+        finishLocalAttempt(a, expired);
+        return;
+      }
       toast("Pengiriman gagal: " + e.message);
       if (/waktu|ditutup|kedaluwarsa/i.test(e.message)) { attempt = null; store("tka_attempt", null); go("home"); }
       else if (a === attempt) startTimer();
