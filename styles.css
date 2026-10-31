@@ -43,3 +43,85 @@
 .symbol.big{width:50px;height:50px;border-radius:14px}
 .symbol.big svg{width:28px;height:28px}
 .subjectcard.simple .primary{width:100%;padding:12px 14px;font-size:12px}
+
+/* ---------- Tampilan Hasil & Pembahasan Soal Salah ---------- */
+.result-layout{max-width:960px;margin:0 auto}
+.circle.pass{border-color:#DFF2E7;color:var(--green)}
+.circle.fail{border-color:#FDE8E8;color:#DC2626}
+.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:500px;margin:18px auto 6px}
+.rstat{background:#F8FAFC;border:1px solid var(--line);border-radius:10px;padding:12px 10px;text-align:center}
+.rstat span{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.rstat strong{display:block;font:800 20px 'Plus Jakarta Sans'}
+.rstat.correct strong{color:var(--green)}
+.rstat.wrong strong{color:#DC2626}
+.rstat.score strong{color:var(--navy)}
+
+.btn-remedial{background:linear-gradient(135deg,#D97706,#B45309)!important;color:white!important;font-weight:700;border:0;box-shadow:0 4px 14px rgba(180,83,9,0.25)}
+.btn-remedial:hover{background:linear-gradient(135deg,#B45309,#92400E)!important}
+
+.review-section{margin-top:34px}
+.review-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;gap:14px}
+.review-head h2{font:800 22px 'Plus Jakarta Sans';color:var(--navy);margin:0 0 4px}
+.review-head p{margin:0}
+.review-filters{display:flex;gap:8px;flex-wrap:wrap}
+.rfilter-btn{background:white;border:1px solid var(--line);border-radius:99px;padding:7px 15px;font-size:11px;font-weight:700;color:#53647B;cursor:pointer;transition:all .15s ease}
+.rfilter-btn:hover{border-color:#B9D4F0;color:var(--navy)}
+.rfilter-btn.active{background:var(--navy);border-color:var(--navy);color:white}
+
+.review-cards{display:flex;flex-direction:column;gap:16px}
+.review-card{background:white;border:1px solid var(--line);border-radius:13px;padding:22px;box-shadow:0 2px 6px rgba(0,0,0,0.02)}
+.review-card.card-wrong{border-left:5px solid #EF4444}
+.review-card.card-correct{border-left:5px solid var(--green)}
+.rcard-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.rcard-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rcard-num{font:800 13px 'Plus Jakarta Sans';color:var(--navy)}
+.rcard-sub{font-size:11px;color:var(--muted);background:#F1F5F9;border-radius:6px;padding:2px 8px;font-weight:600}
+.review-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
+.review-badge.correct{background:#E6F5ED;color:var(--green)}
+.review-badge.wrong{background:#FDE8E8;color:#DC2626}
+.review-badge.skipped{background:#FEF3C7;color:#B45309}
+
+.rcard-question{font-size:14px;font-weight:600;color:var(--text);line-height:1.6;margin-bottom:16px;white-space:pre-line}
+.rcard-options{display:flex;flex-direction:column;gap:8px}
+.review-opt{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:9px;padding:11px 14px;font-size:12px;line-height:1.5;background:#FAFBFD}
+.review-opt .letter{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#EAF0F8;color:var(--navy);font-weight:700;font-size:11px;flex-shrink:0}
+.review-opt .opt-text{flex:1;min-width:0;white-space:pre-line}
+.review-opt.is-correct{background:#E6F5ED;border-color:#A3D9B8;color:#166534;font-weight:600}
+.review-opt.is-correct .letter{background:var(--green);color:white}
+.review-opt.is-key{background:#F0FDF4;border-color:#86EFAC;color:#15803D;font-weight:600}
+.review-opt.is-key .letter{background:#15803D;color:white}
+.review-opt.is-wrong{background:#FEF2F2;border-color:#FECACA;color:#991B1B;font-weight:600}
+.review-opt.is-wrong .letter{background:#DC2626;color:white}
+
+.opt-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;flex-shrink:0}
+.opt-tag.tag-correct{background:#DCFCE7;color:#15803D;border:1px solid #86EFAC}
+.opt-tag.tag-key{background:#DCFCE7;color:#15803D;border:1px solid #86EFAC}
+.opt-tag.tag-wrong{background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5}
+
+.rcard-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:11px;color:var(--muted);flex-wrap:wrap;gap:8px}
+.link-materi{background:none;border:0;color:var(--blue);font-weight:700;font-size:11px;cursor:pointer;padding:0}
+.link-materi:hover{text-decoration:underline}
+
+.cat-table-wrap{overflow-x:auto;margin:8px 0;border:1px solid var(--line);border-radius:9px}
+.cat-review-table{width:100%;border-collapse:collapse;font-size:12px;background:white}
+.cat-review-table th{background:#F8FAFC;color:#64748B;font-size:10px;text-transform:uppercase;font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}
+.cat-review-table td{padding:10px 12px;border-bottom:1px solid #EDF1F6}
+.cat-col-l{width:32px;text-align:center}
+.cat-col-text{white-space:pre-line;line-height:1.5}
+.cat-col-ans{width:120px;font-weight:700}
+.cat-col-key{width:130px;font-weight:700}
+.badge-ans-ok{color:var(--green)!important}
+.badge-ans-err{color:#DC2626!important}
+
+.review-empty{text-align:center;padding:40px 20px;background:white;border-radius:13px;border:1px solid var(--line)}
+.success-box{background:#F7FDF9;border-color:#C3E6CB}
+.success-box h3{color:#166534;font:800 18px 'Plus Jakarta Sans';margin:8px 0 4px}
+
+@media(max-width:750px){
+  .result-stats{grid-template-columns:1fr}
+  .review-head{flex-direction:column;align-items:flex-start}
+  .review-filters{width:100%}
+  .rfilter-btn{flex:1;text-align:center;padding:8px 6px;font-size:10px}
+  .review-opt{flex-wrap:wrap}
+  .opt-tag{margin-left:35px}
+}

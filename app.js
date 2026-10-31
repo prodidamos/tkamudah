@@ -30,7 +30,7 @@ const cfg = window.TKA_CONFIG || { apiUrl: "" };
 const materi = window.TKA_MATERI || [];
 
 let user = null, page = "home", attempt = null, history = [], pending = null, result = null, timer = null, board = null;
-let report = null, reportFilter = { kelas: "", jenis: "" };
+let report = null, reportFilter = { kelas: "", jenis: "" }, reviewFilter = "wrong";
 
 /* ---------- util ---------- */
 function esc(s) {
@@ -232,6 +232,7 @@ function boardPanel() {
 function home() {
   const isGuru = user.role === "guru";
   const pw = "";
+  const lastRev = load("tka_last_review");
   const tiles = subjects.slice(0, 6).map((s, i) => {
     const last = history.find(x => x.jenis === "latihan" && x.subjek === s);
     return `<button class="tile" data-subject="${esc(s)}"><span class="symbol">${icons[i]}</span><span><strong>${esc(s)}</strong><small>${last ? `Nilai terakhir: ${esc(last.nilai)} • ${esc(fmtDate(last.tanggal))}` : "Belum pernah dicoba"}</small></span></button>`;
@@ -239,10 +240,10 @@ function home() {
   const acts = history.length ? history.slice(0, 4).map(x => `<div class="activity"><span class="symbol">✓</span><div><b>${esc(x.jenis === "simulasi" ? "Simulasi TKA" : x.subjek)}</b><small>${esc(fmtDate(x.tanggal))} • ${esc(x.jumlah_soal)} soal</small></div><strong>${esc(x.nilai)}</strong></div>`).join("")
     : `<p class="muted">Belum ada aktivitas. Mulai latihan untuk melihat progresmu di sini.</p>`;
   const displayName = user.nama || user.username || (isGuru ? "Guru" : "Siswa");
-  return `${pw}<div class="welcome"><div><p class="eyebrow">RUANG LATIHAN TKA</p><h1>Halo, ${esc(displayName)}! 👋</h1><p>Persiapkan diri menghadapi Tes Kompetensi Akademik dengan berlatih secara terarah. Pilih subjek, kerjakan soal, dan evaluasi hasil belajarmu.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button data-go="subjects">Mulai latihan　→</button>${isGuru ? `<button class="secondary" data-go="report">Lihat laporan nilai　→</button>` : ""}</div></div><div class="welcomeart">▤</div></div>
+  return `${pw}<div class="welcome"><div><p class="eyebrow">RUANG LATIHAN TKA</p><h1>Halo, ${esc(displayName)}! 👋</h1><p>Persiapkan diri menghadapi Tes Kompetensi Akademik dengan berlatih secara terarah. Pilih subjek, kerjakan soal, dan evaluasi hasil belajarmu.</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button data-go="subjects">Mulai latihan　→</button>${lastRev ? `<button class="secondary" id="open-last-review">Pembahasan Terakhir ↗</button>` : ""}${isGuru ? `<button class="secondary" data-go="report">Lihat laporan nilai　→</button>` : ""}</div></div><div class="welcomeart">▤</div></div>
 <div class="stats"><div class="stat"><span>Total latihan</span><strong>${history.length}</strong><small>Tersimpan di server</small></div><div class="stat"><span>Nilai rata-rata</span><strong>${avgOf(history)}</strong><small>Seluruh sesi</small></div><div class="stat"><span>Subjek tersedia</span><strong>${subjects.length}</strong><small>Bidang kompetensi TJKT</small></div><div class="stat"><span>Durasi simulasi</span><strong>${SIM.minutes} <small>menit</small></strong><small>${SIM.count} soal</small></div></div>
 <div class="sectionhead"><h2>Jelajahi subjek</h2><button class="link" data-go="subjects">Lihat semua →</button></div>
-<div class="dashgrid"><div class="panel"><div class="tiles">${tiles}</div></div><div class="panel"><div class="sectionhead"><h2>Aktivitas terbaru</h2></div>${acts}</div></div>${boardPanel()}`;
+<div class="dashgrid"><div class="panel"><div class="tiles">${tiles}</div></div><div class="panel"><div class="sectionhead"><h2>Aktivitas terbaru</h2>${lastRev ? `<button class="link" id="act-last-review" style="font-size:11px">Review terakhir →</button>` : ""}</div>${acts}</div></div>${boardPanel()}`;
 }
 
 function topicsOf(subject) { return materi.filter(m => m.subjek === subject); }
@@ -460,13 +461,36 @@ function finishLocalAttempt(a, expired = false) {
   const keys = a.keys || {};
   let correct = 0;
   const questions = a.questions || [];
+  const review = [];
   questions.forEach(q => {
     const rawQ = keys[q.id];
-    if (rawQ && checkAnswer(a.answers[q.id], rawQ)) correct++;
+    const userAns = a.answers[q.id] !== undefined ? a.answers[q.id] : null;
+    const isCorrect = rawQ ? checkAnswer(userAns, rawQ) : false;
+    if (isCorrect) correct++;
+    review.push({
+      question_id: q.id,
+      question: q,
+      is_correct: isCorrect,
+      user_answer: userAns,
+      kunci: rawQ ? (rawQ.kunci_opsi || rawQ.kunci || "") : "",
+      tipe: q.tipe
+    });
   });
   const total = questions.length;
   const score = total ? Math.round(correct / total * 100) : 0;
-  result = { nilai: score, benar: correct, total, expired, subject: a.subject, type: a.type };
+  const hasWrong = review.some(x => !x.is_correct);
+  reviewFilter = hasWrong ? "wrong" : "all";
+  result = {
+    nilai: score,
+    benar: correct,
+    total,
+    expired,
+    subject: a.subject,
+    type: a.type,
+    sub: a.sub || "",
+    review
+  };
+  store("tka_last_review", result);
   const completedAttempt = {
     attempt_id: a.id,
     jenis: a.type || "latihan",
@@ -613,7 +637,34 @@ function finish(expired = false) {
   toast("Mengirim jawaban…");
   api("finishAttempt", { attempt_id: a.id, answers: a.answers })
     .then(d => {
-      result = { nilai: d.nilai, benar: d.jumlah_benar, total: d.jumlah_soal, expired, subject: a.subject, type: a.type };
+      const questions = a.questions || [];
+      const serverRev = Array.isArray(d.review) ? d.review : [];
+      const revMap = new Map(serverRev.map(r => [r.question_id, r]));
+      const review = questions.map(q => {
+        const r = revMap.get(q.id);
+        const userAns = a.answers[q.id] !== undefined ? a.answers[q.id] : null;
+        return {
+          question_id: q.id,
+          question: q,
+          is_correct: r ? !!r.is_correct : false,
+          user_answer: userAns,
+          kunci: r ? (r.kunci || "") : "",
+          tipe: q.tipe
+        };
+      });
+      const hasWrong = review.some(x => !x.is_correct);
+      reviewFilter = hasWrong ? "wrong" : "all";
+      result = {
+        nilai: d.nilai,
+        benar: d.jumlah_benar,
+        total: d.jumlah_soal,
+        expired,
+        subject: a.subject,
+        type: a.type,
+        sub: a.sub || "",
+        review
+      };
+      store("tka_last_review", result);
       const completedAttempt = {
         attempt_id: d.attempt_id || a.id,
         jenis: d.jenis || a.type || "latihan",
@@ -645,9 +696,256 @@ function finish(expired = false) {
     .finally(() => { finishing = false; });
 }
 
+function retryWrongQuestions() {
+  const r = result || load("tka_last_review");
+  if (!r || !r.review) return;
+  const wrong = r.review.filter(x => !x.is_correct);
+  if (!wrong.length) { toast("Semua soal sudah benar! Kerja bagus."); return; }
+
+  const keysMap = {};
+  wrong.forEach(x => {
+    keysMap[x.question_id] = {
+      question_id: x.question_id,
+      kunci: x.kunci,
+      kunci_opsi: x.kunci,
+      bentuk_soal: x.tipe === "multi" ? "PGK MCMA" : (x.tipe === "kategori" ? "PGK Kategori" : "PG")
+    };
+  });
+
+  const minutes = Math.max(5, Math.ceil(wrong.length * 1.5));
+  const now = Date.now();
+  attempt = {
+    id: "remedial_" + Math.random().toString(36).slice(2, 10),
+    type: "latihan",
+    subject: (r.subject || "Latihan") + " (Remedial)",
+    sub: "Ulangi " + wrong.length + " Soal Salah",
+    questions: wrong.map(x => x.question),
+    answers: {},
+    index: 0,
+    endAt: now + minutes * 60000,
+    local: true,
+    keys: keysMap
+  };
+  saveAttempt();
+  go("quiz");
+  startTimer();
+  toast(`Memulai latihan ulang ${wrong.length} soal salah.`);
+}
+
+function renderReviewCard(item, num) {
+  const q = item.question || {};
+  const isCorrect = !!item.is_correct;
+  const userAns = item.user_answer;
+  const key = String(item.kunci || "").trim();
+  const tipe = item.tipe || q.tipe || "pg";
+  const isBlank = userAns == null || (Array.isArray(userAns) && !userAns.length) || (tipe === "kategori" && (!userAns || typeof userAns !== "object" || !Object.keys(userAns).length));
+
+  let badge = "";
+  if (isCorrect) {
+    badge = `<span class="review-badge correct">✓ Benar</span>`;
+  } else if (isBlank) {
+    badge = `<span class="review-badge skipped">⚠️ Tidak Dijawab</span>`;
+  } else {
+    badge = `<span class="review-badge wrong">✕ Salah</span>`;
+  }
+
+  let optionsHtml = "";
+
+  if (tipe === "kategori") {
+    const wantMap = {};
+    key.split(/[;,|]/).forEach(p => {
+      const m = p.split("=");
+      if (m.length === 2) wantMap[m[0].trim().toUpperCase()] = m[1].trim().toUpperCase();
+    });
+    const gotMap = {};
+    if (Array.isArray(userAns)) {
+      userAns.forEach(p => {
+        const m = String(p).split("=");
+        if (m.length === 2) gotMap[m[0].trim().toUpperCase()] = m[1].trim().toUpperCase();
+      });
+    } else if (userAns && typeof userAns === "object") {
+      Object.keys(userAns).forEach(k => { gotMap[k.trim().toUpperCase()] = String(userAns[k]).trim().toUpperCase(); });
+    }
+
+    const rows = (q.opts || []).map(o => {
+      const want = wantMap[o.l] || "—";
+      const got = gotMap[o.l] || "(Kosong)";
+      const isMatch = got === want;
+      return `<tr class="${isMatch ? "cat-row-ok" : "cat-row-err"}">
+        <td class="cat-col-l"><b>${esc(o.l)}</b></td>
+        <td class="cat-col-text">${esc(o.t)}</td>
+        <td class="cat-col-ans ${isMatch ? "badge-ans-ok" : "badge-ans-err"}">${esc(got)}</td>
+        <td class="cat-col-key badge-ans-ok"><b>${esc(want)}</b></td>
+      </tr>`;
+    }).join("");
+
+    optionsHtml = `<div class="cat-table-wrap">
+      <table class="cat-review-table">
+        <thead>
+          <tr>
+            <th style="width:36px">No</th>
+            <th>Pernyataan</th>
+            <th>Pilihan Anda</th>
+            <th>Kunci Seharusnya</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  } else if (tipe === "multi") {
+    const wantSet = new Set(key.split(/[;,|]/).map(v => v.trim().toUpperCase()).filter(Boolean));
+    const gotSet = new Set((Array.isArray(userAns) ? userAns : [userAns]).map(v => String(v || "").trim().toUpperCase()).filter(Boolean));
+
+    optionsHtml = (q.opts || []).map(o => {
+      const isExpected = wantSet.has(o.l);
+      const isChosen = gotSet.has(o.l);
+      let optClass = "review-opt";
+      let tag = "";
+
+      if (isExpected && isChosen) {
+        optClass += " is-correct";
+        tag = `<span class="opt-tag tag-correct">✓ Pilihan Benar</span>`;
+      } else if (isExpected && !isChosen) {
+        optClass += " is-key";
+        tag = `<span class="opt-tag tag-key">✓ Kunci (Harus Dipilih)</span>`;
+      } else if (!isExpected && isChosen) {
+        optClass += " is-wrong";
+        tag = `<span class="opt-tag tag-wrong">✕ Keliru Dipilih</span>`;
+      }
+
+      return `<div class="${optClass}">
+        <span class="letter">${esc(o.l)}</span>
+        <span class="opt-text">${esc(o.t)}</span>
+        ${tag}
+      </div>`;
+    }).join("");
+  } else {
+    const m = key.toUpperCase().match(/^([A-E])(?:[.\s)]|$)/);
+    const keyLetter = m ? m[1] : key.toUpperCase();
+    const userLetter = userAns ? String(userAns).trim().toUpperCase() : "";
+
+    optionsHtml = (q.opts || []).map(o => {
+      const isKey = o.l === keyLetter;
+      const isChosen = o.l === userLetter;
+      let optClass = "review-opt";
+      let tag = "";
+
+      if (isKey && isChosen) {
+        optClass += " is-correct";
+        tag = `<span class="opt-tag tag-correct">✓ Jawaban Anda (Benar)</span>`;
+      } else if (isKey && !isChosen) {
+        optClass += " is-key";
+        tag = `<span class="opt-tag tag-key">✓ Kunci Jawaban</span>`;
+      } else if (!isKey && isChosen) {
+        optClass += " is-wrong";
+        tag = `<span class="opt-tag tag-wrong">✕ Jawaban Anda (Salah)</span>`;
+      }
+
+      return `<div class="${optClass}">
+        <span class="letter">${esc(o.l)}</span>
+        <span class="opt-text">${esc(o.t)}</span>
+        ${tag}
+      </div>`;
+    }).join("");
+  }
+
+  return `
+  <article class="review-card ${isCorrect ? "card-correct" : "card-wrong"}">
+    <div class="rcard-head">
+      <div class="rcard-meta">
+        <span class="rcard-num">Soal ${num}</span>
+        ${q.sub ? `<span class="rcard-sub">${esc(q.sub)}</span>` : ""}
+        ${q.pus ? `<span class="pill">PUSMENDIK</span>` : ""}
+      </div>
+      ${badge}
+    </div>
+    <div class="rcard-question">${esc(q.text || "Soal")}</div>
+    <div class="rcard-options">${optionsHtml}</div>
+    ${q.sub ? `
+    <div class="rcard-foot">
+      <span>Submateri: <b>${esc(q.sub)}</b></span>
+      <button type="button" class="link-materi" data-go="materi">Pelajari di Menu Materi →</button>
+    </div>` : ""}
+  </article>`;
+}
+
 function resultPage() {
-  const r = result || { nilai: "—", benar: "—", total: "—" };
-  return `<div class="panel result"><div class="circle">${esc(r.nilai)}</div><p class="eyebrow">SESI SELESAI</p><h2>${r.expired ? "Waktu pengerjaan habis" : "Latihan selesai!"}</h2><p class="muted">Jawaban benar ${esc(r.benar)} dari ${esc(r.total)} soal pada ${esc(r.subject || "Simulasi TKA")}.</p><p class="muted">Nilai sudah tersimpan di database.</p><p class="muted" style="margin-top:6px">Total latihan yang sudah dikerjakan: <b>${history.length}</b> sesi</p><div class="actions"><button class="primary" data-go="subjects">Latihan subjek lain</button><button class="secondary" data-go="home">Kembali ke beranda</button></div></div>`;
+  const r = result || load("tka_last_review") || { nilai: "—", benar: "—", total: "—", review: [] };
+  result = r;
+  const reviewList = r.review || [];
+  const total = r.total || reviewList.length || 0;
+  const benar = r.benar != null ? r.benar : reviewList.filter(x => x.is_correct).length;
+  const salah = Math.max(0, total - benar);
+  const hasWrong = reviewList.some(x => !x.is_correct);
+
+  let filtered = reviewList;
+  if (reviewFilter === "wrong") {
+    filtered = reviewList.filter(x => !x.is_correct);
+  } else if (reviewFilter === "correct") {
+    filtered = reviewList.filter(x => x.is_correct);
+  }
+
+  let cardsHtml = "";
+  if (!reviewList.length) {
+    cardsHtml = `<div class="review-empty"><p class="muted">Detail evaluasi butir soal tidak tersedia untuk sesi ini.</p></div>`;
+  } else if (!filtered.length) {
+    if (reviewFilter === "wrong") {
+      cardsHtml = `<div class="review-empty success-box">
+        <div style="font-size:38px;margin-bottom:10px">🎉</div>
+        <h3>Luar Biasa! Tidak Ada Soal yang Salah</h3>
+        <p class="muted">Semua soal pada sesi ini berhasil Anda jawab dengan benar.</p>
+      </div>`;
+    } else {
+      cardsHtml = `<div class="review-empty"><p class="muted">Tidak ada soal pada kategori filter ini.</p></div>`;
+    }
+  } else {
+    cardsHtml = filtered.map(item => renderReviewCard(item, reviewList.indexOf(item) + 1)).join("");
+  }
+
+  return `<div class="result-layout">
+    <div class="panel result">
+      <div class="circle ${r.nilai >= 75 ? "pass" : "fail"}">${esc(r.nilai)}</div>
+      <p class="eyebrow">SESI SELESAI</p>
+      <h2>${r.expired ? "Waktu pengerjaan habis" : "Latihan selesai!"}</h2>
+      <p class="muted">Jawaban benar <b>${esc(benar)}</b> dari <b>${esc(total)}</b> soal pada ${esc(r.subject || "Simulasi TKA")}.</p>
+      <div class="result-stats">
+        <div class="rstat correct"><span>Benar</span><strong>${esc(benar)}</strong></div>
+        <div class="rstat wrong"><span>Salah / Kosong</span><strong>${esc(salah)}</strong></div>
+        <div class="rstat score"><span>Nilai Akhir</span><strong>${esc(r.nilai)}</strong></div>
+      </div>
+      <p class="muted" style="margin-top:10px">Total latihan yang sudah dikerjakan: <b>${history.length}</b> sesi</p>
+      <div class="actions">
+        ${hasWrong ? `<button type="button" class="primary btn-remedial" id="btn-remedial">⚡ Latih Ulang Soal Salah (${salah})</button>` : ""}
+        <button type="button" class="${hasWrong ? "secondary" : "primary"}" data-go="subjects">Latihan subjek lain</button>
+        <button type="button" class="secondary" data-go="home">Kembali ke beranda</button>
+      </div>
+    </div>
+
+    <div class="review-section">
+      <div class="review-head">
+        <div>
+          <h2>Pembahasan & Evaluasi Soal</h2>
+          <p class="muted">Tinjau jawaban Anda untuk memahami konsep yang keliru.</p>
+        </div>
+        ${reviewList.length ? `
+        <div class="review-filters">
+          <button type="button" class="rfilter-btn ${reviewFilter === "wrong" ? "active" : ""}" data-filter="wrong">
+            ❌ Salah (${salah})
+          </button>
+          <button type="button" class="rfilter-btn ${reviewFilter === "correct" ? "active" : ""}" data-filter="correct">
+            ✅ Benar (${benar})
+          </button>
+          <button type="button" class="rfilter-btn ${reviewFilter === "all" ? "active" : ""}" data-filter="all">
+            📋 Semua (${total})
+          </button>
+        </div>` : ""}
+      </div>
+
+      <div class="review-cards">
+        ${cardsHtml}
+      </div>
+    </div>
+  </div>`;
 }
 
 /* ---------- render & event ---------- */
@@ -696,6 +994,30 @@ function render() {
   });
   $("#startsim")?.addEventListener("click", () => start("simulasi", null));
   $("#fapply")?.addEventListener("click", () => { reportFilter = { kelas: $("#fkelas").value, jenis: $("#fjenis").value }; loadReport(); render(); });
+
+  if (page === "result") {
+    c.querySelectorAll(".rfilter-btn").forEach(btn => {
+      btn.onclick = () => {
+        reviewFilter = btn.dataset.filter;
+        render();
+      };
+    });
+    $("#btn-remedial")?.addEventListener("click", retryWrongQuestions);
+  }
+
+  if (page === "home") {
+    const openRev = () => {
+      const lastRev = load("tka_last_review");
+      if (lastRev) {
+        result = lastRev;
+        const hasWrong = (lastRev.review || []).some(x => !x.is_correct);
+        reviewFilter = hasWrong ? "wrong" : "all";
+        go("result");
+      }
+    };
+    $("#open-last-review")?.addEventListener("click", openRev);
+    $("#act-last-review")?.addEventListener("click", openRev);
+  }
 
   if (page === "quiz" && attempt) {
     const q = attempt.questions[attempt.index], set = v => { if (v === undefined || (Array.isArray(v) && !v.length)) delete attempt.answers[q.id]; else attempt.answers[q.id] = v; saveAttempt(); render(); };
