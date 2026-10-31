@@ -636,9 +636,27 @@ function finish(expired = false) {
   }
   toast("Mengirim jawaban…");
   api("finishAttempt", { attempt_id: a.id, answers: a.answers })
-    .then(d => {
+    .then(async d => {
       const questions = a.questions || [];
-      const serverRev = Array.isArray(d.review) ? d.review : [];
+      let serverRev = Array.isArray(d.review) ? d.review : [];
+      if (!serverRev.length) {
+        try {
+          const bank = await loadBankData();
+          const bankMap = new Map(bank.map(q => [q.question_id, q]));
+          serverRev = questions.map(q => {
+            const rawQ = bankMap.get(q.id);
+            const userAns = a.answers[q.id] !== undefined ? a.answers[q.id] : null;
+            const isCorrect = rawQ ? checkAnswer(userAns, rawQ) : false;
+            return {
+              question_id: q.id,
+              is_correct: isCorrect,
+              user_answer: userAns,
+              kunci: rawQ ? (rawQ.kunci_opsi || rawQ.kunci || "") : "",
+              tipe: q.tipe
+            };
+          });
+        } catch (_) {}
+      }
       const revMap = new Map(serverRev.map(r => [r.question_id, r]));
       const review = questions.map(q => {
         const r = revMap.get(q.id);
@@ -873,6 +891,28 @@ function resultPage() {
   const r = result || load("tka_last_review") || { nilai: "—", benar: "—", total: "—", review: [] };
   result = r;
   const reviewList = r.review || [];
+
+  if (reviewList.length && reviewList.some(x => !x.kunci)) {
+    loadBankData().then(bank => {
+      const bankMap = new Map(bank.map(q => [q.question_id, q]));
+      let anyFixed = false;
+      reviewList.forEach(item => {
+        if (!item.kunci) {
+          const rawQ = bankMap.get(item.question_id);
+          if (rawQ) {
+            item.kunci = rawQ.kunci_opsi || rawQ.kunci || "";
+            item.is_correct = checkAnswer(item.user_answer, rawQ);
+            anyFixed = true;
+          }
+        }
+      });
+      if (anyFixed) {
+        store("tka_last_review", result);
+        if (page === "result") render();
+      }
+    }).catch(() => {});
+  }
+
   const total = r.total || reviewList.length || 0;
   const benar = r.benar != null ? r.benar : reviewList.filter(x => x.is_correct).length;
   const salah = Math.max(0, total - benar);
