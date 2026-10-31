@@ -657,9 +657,10 @@ function finish(expired = false) {
           });
         } catch (_) {}
       }
-      const revMap = new Map(serverRev.map(r => [r.question_id, r]));
+      const revMap = new Map(serverRev.map(r => [String(r.question_id || "").trim(), r]));
       const review = questions.map(q => {
-        const r = revMap.get(q.id);
+        const qId = String(q.id || "").trim();
+        const r = revMap.get(qId);
         const userAns = a.answers[q.id] !== undefined ? a.answers[q.id] : null;
         return {
           question_id: q.id,
@@ -914,9 +915,12 @@ function resultPage() {
   }
 
   const total = r.total || reviewList.length || 0;
-  const benar = r.benar != null ? r.benar : reviewList.filter(x => x.is_correct).length;
+  const countBenar = reviewList.filter(x => x.is_correct).length;
+  const countSalah = reviewList.filter(x => !x.is_correct).length;
+  const benar = r.benar != null ? r.benar : countBenar;
   const salah = Math.max(0, total - benar);
   const hasWrong = reviewList.some(x => !x.is_correct);
+  const missingServerReview = (Number(r.benar) > 0 && countBenar === 0) || (reviewList.length > 0 && reviewList.every(x => !x.kunci));
 
   let filtered = reviewList;
   if (reviewFilter === "wrong") {
@@ -934,6 +938,12 @@ function resultPage() {
         <div style="font-size:38px;margin-bottom:10px">🎉</div>
         <h3>Luar Biasa! Tidak Ada Soal yang Salah</h3>
         <p class="muted">Semua soal pada sesi ini berhasil Anda jawab dengan benar.</p>
+      </div>`;
+    } else if (reviewFilter === "correct" && missingServerReview) {
+      cardsHtml = `<div class="review-empty">
+        <p class="muted" style="line-height:1.7"><b>Kunci evaluasi belum terkirim dari server Apps Script.</b><br>
+        Server mencatat Anda benar <b>${esc(benar)}</b> soal, namun rincian soal benar belum dapat ditampilkan karena backend Apps Script belum mengembalikan data review.<br>
+        <small style="color:var(--navy)">Solusi: Buka script.google.com, perbarui Code.gs, lalu klik <b>Deploy &gt; Manage deployments &gt; New version</b>.</small></p>
       </div>`;
     } else {
       cardsHtml = `<div class="review-empty"><p class="muted">Tidak ada soal pada kategori filter ini.</p></div>`;
@@ -970,17 +980,17 @@ function resultPage() {
         ${reviewList.length ? `
         <div class="review-filters">
           <button type="button" class="rfilter-btn ${reviewFilter === "wrong" ? "active" : ""}" data-filter="wrong">
-            ❌ Salah (${salah})
+            ❌ Salah (${countSalah})
           </button>
           <button type="button" class="rfilter-btn ${reviewFilter === "correct" ? "active" : ""}" data-filter="correct">
-            ✅ Benar (${benar})
+            ✅ Benar (${countBenar})
           </button>
           <button type="button" class="rfilter-btn ${reviewFilter === "all" ? "active" : ""}" data-filter="all">
             📋 Semua (${total})
           </button>
         </div>` : ""}
       </div>
-
+      ${missingServerReview ? `<div class="notice-backend-warn"><b>⚠️ Info Guru/Pengembang:</b> Kunci evaluasi per soal belum dikirim oleh backend Apps Script. Harap buka <b>script.google.com</b>, pastikan <code>Code.gs</code> sudah diperbarui, lalu lakukan <b>Deploy &gt; Manage deployments &gt; Edit &gt; New version &gt; Deploy</b>.</div>` : ""}
       <div class="review-cards">
         ${cardsHtml}
       </div>

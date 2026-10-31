@@ -117,6 +117,10 @@
 .success-box{background:#F7FDF9;border-color:#C3E6CB}
 .success-box h3{color:#166534;font:800 18px 'Plus Jakarta Sans';margin:8px 0 4px}
 
+.notice-backend-warn{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:13px 16px;color:#92400E;font-size:12px;margin:16px 0;line-height:1.6}
+.notice-backend-warn b{color:#78350F}
+.notice-backend-warn code{background:#FEF3C7;color:#92400E;font-size:11px;padding:2px 5px}
+
 @media(max-width:750px){
   .result-stats{grid-template-columns:1fr}
   .review-head{flex-direction:column;align-items:flex-start}
